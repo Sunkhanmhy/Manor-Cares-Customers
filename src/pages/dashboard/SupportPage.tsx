@@ -161,10 +161,18 @@ export function SupportPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button className="btn btn-primary" onClick={() => setShowNewForm((v) => !v)}>
-          + New Ticket
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+        <div style={{ color: 'var(--text-muted)' }}>Need help? Create a ticket or reach us via any channel below.</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button className="btn btn-primary" onClick={() => setShowNewForm((v) => !v)}>
+            + New Ticket
+          </button>
+          <a className="btn btn-ghost" href={`mailto:support@manor-cares.com?subject=Support%20Request`}>Send Mail</a>
+          <a className="btn btn-ghost" href={`https://wa.me/2340000000000?text=I%20need%20help`} target="_blank" rel="noreferrer">WhatsApp</a>
+          <a className="btn btn-ghost" href={`https://t.me/ManorCaresSupport`} target="_blank" rel="noreferrer">Telegram</a>
+          <a className="btn btn-ghost" href={`https://instagram.com/manor-cares`} target="_blank" rel="noreferrer">Instagram</a>
+          <a className="btn btn-ghost" href={`https://facebook.com/manor-cares`} target="_blank" rel="noreferrer">Facebook</a>
+        </div>
       </div>
 
       {showNewForm && (

@@ -98,7 +98,7 @@ export function NotificationsPage() {
               }}
               onClick={() => !n.is_read && markAsRead(n.id)}
             >
-              <span style={{ fontSize: 20 }}>{ICONS[n.type] ?? '🔔'}</span>
+              <span className="icon">{ICONS[n.type] ?? '🔔'}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                   <strong style={{ fontSize: 13.5 }}>{n.title}</strong>

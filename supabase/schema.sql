@@ -35,6 +35,9 @@ create table if not exists public.profiles (
   last_name text not null,
   email text not null,
   phone text,
+  id_document_url text,
+  career_status text,
+  relationship_status text,
   avatar_url text,
   date_of_birth date,
   gender text check (gender in ('male', 'female', 'other', 'prefer_not_to_say')),
@@ -62,6 +65,7 @@ create table if not exists public.customer_profiles (
   preferred_contact_method text default 'email' check (preferred_contact_method in ('email', 'phone', 'sms')),
   customer_status text not null default 'active' check (customer_status in ('active', 'inactive', 'vip', 'suspended')),
   notes text,
+  invited_by_profile_id bigint references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -332,8 +336,109 @@ create table if not exists public.notifications (
   created_at timestamptz not null default now()
 );
 
+-- =====================================================================
+-- Invites table (invite links for referral/invite-a-friend flows)
+-- =====================================================================
+create table if not exists public.invites (
+  id bigint generated always as identity primary key,
+  token text not null unique,
+  inviter_profile_id bigint references public.profiles (id) on delete set null,
+  invitee_email text,
+  used boolean not null default false,
+  used_by_profile_id bigint references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz
+);
+
+create index if not exists invites_inviter_idx on public.invites (inviter_profile_id);
+
+alter table public.invites enable row level security;
+
+drop policy if exists invites_select on public.invites;
+create policy invites_select on public.invites for select to authenticated
+  using (inviter_profile_id = private.current_profile_id() or private.is_admin());
+
+drop policy if exists invites_insert on public.invites;
+create policy invites_insert on public.invites for insert to authenticated
+  with check (inviter_profile_id = private.current_profile_id() or private.is_admin());
+
+drop policy if exists invites_update on public.invites;
+create policy invites_update on public.invites for update to authenticated
+  using (inviter_profile_id = private.current_profile_id() or private.is_admin())
+  with check (inviter_profile_id = private.current_profile_id() or private.is_admin());
+
+-- =====================================================================
+-- Price plans (admin-managed pricing plans for the Payments page)
+-- =====================================================================
+create table if not exists public.price_plans (
+  id bigint generated always as identity primary key,
+  name text not null,
+  price numeric(12,2) not null,
+  currency text not null default 'NGN',
+  features text[] not null default '{}',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.price_plans enable row level security;
+
+drop policy if exists price_plans_select on public.price_plans;
+create policy price_plans_select on public.price_plans for select to authenticated
+  using (is_active = true or private.is_admin());
+
+drop policy if exists price_plans_write on public.price_plans;
+create policy price_plans_write on public.price_plans for all to authenticated
+  using (private.is_admin())
+  with check (private.is_admin());
+
 create index if not exists notifications_profile_id_idx on public.notifications (profile_id);
 create index if not exists notifications_unread_idx on public.notifications (profile_id, is_read) where is_read = false;
+
+-- Seed price plans
+insert into public.price_plans (name, price, currency, features)
+values
+  ('Starter Plan', 59999, 'NGN', ARRAY[
+    'Up to 1 bedroom, 1 kitchen', 'Maximum (1) restroom per visit', 'Standard cleaning checklist', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor cleaning', 'Shared cleaning team', 'Bespoke outdoor cleaning', 'Emergency addons cleaning'
+  ]),
+  ('Essential Plan', 99999, 'NGN', ARRAY[
+    'Up to 2 bedrooms, 1 kitchen', 'Maximum (2) restrooms per visit', 'Standard cleaning checklist', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor cleaning', 'Dedicated cleaning team', 'Soft-upholsteries cleaning', 'Bespoke outdoor cleaning', 'Emergency addons cleaning'
+  ]),
+  ('Signature Plan', 199999, 'NGN', ARRAY[
+    'Up to 4 bedrooms, 3 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor sanitation', 'Hard-upholsteries cleaning', 'On-demand surface whitening', 'Bespoke outdoor sanitation', 'Emergency addons cleaning', 'Priority scheduling & maintenance'
+  ]),
+  ('Deluxe Plan', 299999, 'NGN', ARRAY[
+    'Up to 5 bedrooms, 4 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor sanitation', 'Hard-upholsteries cleaning', 'On-demand surface whitening', 'Bespoke outdoor sanitation', 'Emergency addons cleaning', 'Priority scheduling & maintenance'
+  ]),
+  ('Estate Plan', 399999, 'NGN', ARRAY[
+    'Up to 7 bedrooms, 5 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke all-round sanitation', 'Deep upholsteries cleaning', 'On-demand surface whitening', 'Emergency addons cleaning', 'On-demand laundry addons services', 'Priority scheduling & maintenance'
+  ]),
+  ('Platinum Plan', 699999, 'NGN', ARRAY[
+    'Unlimited bedrooms & restrooms', 'Deep-clean checklist add-ons', 'Bi-weekly or 8x-monthly visits', 'Eco-friendly products', 'Bespoke all-round sanitation', 'Deep upholsteries cleaning', 'On-demand surface whitening', 'Emergency addons cleaning', 'On-demand laundry addons services', 'Dedicated account manager'
+  ])
+on conflict (name) do nothing;
+
+-- =====================================================================
+-- Price enquiries (submitted by users for public properties)
+-- =====================================================================
+create table if not exists public.price_enquiries (
+  id bigint generated always as identity primary key,
+  customer_id bigint references public.customer_profiles (id) on delete set null,
+  name text,
+  email text,
+  phone text,
+  details text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.price_enquiries enable row level security;
+
+drop policy if exists price_enquiries_select on public.price_enquiries;
+create policy price_enquiries_select on public.price_enquiries for select to authenticated
+  using (customer_id = private.current_customer_id() or private.is_admin());
+
+drop policy if exists price_enquiries_insert on public.price_enquiries;
+create policy price_enquiries_insert on public.price_enquiries for insert to authenticated
+  with check (customer_id = private.current_customer_id() or customer_id is null);
 
 -- =====================================================================
 -- Private RLS helper functions (security definer, explicit auth.uid() check)
@@ -395,6 +500,7 @@ as $$
 declare
   meta jsonb := new.raw_user_meta_data;
   new_profile_id bigint;
+  inviter_id bigint;
 begin
   insert into public.profiles (
     user_id, first_name, last_name, email, phone, date_of_birth, gender
@@ -428,6 +534,16 @@ begin
       meta ->> 'address_line', meta ->> 'city', meta ->> 'state',
       coalesce(meta ->> 'country', ''), meta ->> 'postal_code', true
     );
+  end if;
+
+  -- If an invite token was supplied during signup, mark the invite used and populate invited_by
+  if coalesce(meta ->> 'invite_token', '') <> '' then
+    update public.invites set used = true, used_by_profile_id = new_profile_id
+    where token = meta ->> 'invite_token' and used = false
+    returning inviter_profile_id into inviter_id;
+    -- set invited_by on the customer_profiles row we created
+    update public.customer_profiles set invited_by_profile_id = inviter_id
+      where profile_id = new_profile_id;
   end if;
 
   return new;

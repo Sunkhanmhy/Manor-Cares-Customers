@@ -11,7 +11,6 @@ const TITLES: Record<string, string> = {
   '/dashboard/bookings': 'My Bookings',
   '/dashboard/payments': 'Payments',
   '/dashboard/invoices': 'Invoices',
-  '/dashboard/reviews': 'Reviews',
   '/dashboard/support': 'Support Center',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/settings': 'Settings',

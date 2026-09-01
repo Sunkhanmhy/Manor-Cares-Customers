@@ -6,12 +6,14 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { StatusBadge } from '../../components/StatusBadge';
 import { formatCurrency, formatDateTime } from '../../lib/format';
-import type { Payment } from '../../types/database';
+import type { Payment, PricePlan, Profile } from '../../types/database';
 
 export function PaymentsPage() {
   const { customerProfile } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [plans, setPlans] = useState<PricePlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enquiry, setEnquiry] = useState({ name: '', email: '', phone: '', details: '' });
 
   useEffect(() => {
     async function load() {
@@ -22,6 +24,8 @@ export function PaymentsPage() {
         .eq('customer_id', customerProfile.id)
         .order('created_at', { ascending: false });
       setPayments((data as Payment[]) ?? []);
+      const plansRes = await supabase.from('price_plans').select('*').order('created_at', { ascending: true });
+      setPlans((plansRes.data as PricePlan[]) ?? []);
       setLoading(false);
     }
     load();
@@ -56,6 +60,68 @@ export function PaymentsPage() {
           <p style={{ fontSize: 22, fontWeight: 700 }}>{payments.length}</p>
         </GlassCard>
       </div>
+
+      <div>
+        <h3 style={{ fontSize: 18, marginBottom: 8 }}>Price Plans</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
+          {plans.map((p) => (
+            <GlassCard key={p.id} style={{ padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{p.name}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{p.currency} {p.price.toLocaleString()}</div>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(Number(p.price), p.currency)}</div>
+              </div>
+              <ul style={{ marginTop: 10, paddingLeft: 18 }}>
+                {p.features.map((f, i) => (
+                  <li key={i} style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 6 }}>{f}</li>
+                ))}
+              </ul>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary">Choose</button>
+                <button className="btn btn-ghost">Details</button>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+
+      <GlassCard style={{ padding: 18, marginTop: 8 }}>
+        <h3 style={{ fontSize: 16, marginBottom: 8 }}>Public Property Price Enquiry</h3>
+        <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 10 }}>We'll auto-fill your details below.</p>
+        <form onSubmit={async (e) => { e.preventDefault();
+          await supabase.from('price_enquiries').insert({
+            customer_id: customerProfile?.id ?? null,
+            name: enquiry.name,
+            email: enquiry.email,
+            phone: enquiry.phone,
+            details: enquiry.details,
+          });
+        }} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <input className="input" placeholder="Name" value={enquiry.name} onChange={(e) => setEnquiry({ ...enquiry, name: e.target.value })} />
+            <input className="input" placeholder="Email" value={enquiry.email} onChange={(e) => setEnquiry({ ...enquiry, email: e.target.value })} />
+            <input className="input" placeholder="Phone" value={enquiry.phone} onChange={(e) => setEnquiry({ ...enquiry, phone: e.target.value })} />
+            <select className="input" defaultValue="" onChange={(e) => setEnquiry({ ...enquiry, details: e.target.value })}>
+              <option value="">Select property type</option>
+              <option value="private">Private property</option>
+              <option value="public">Public building</option>
+            </select>
+          </div>
+          <textarea className="input" placeholder="Additional details" value={enquiry.details} onChange={(e) => setEnquiry({ ...enquiry, details: e.target.value })} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="submit" className="btn btn-primary">Submit Enquiry</button>
+            <button type="button" className="btn btn-ghost" onClick={async () => {
+              // autofill from profile
+              if (!customerProfile) return;
+              const { data } = await supabase.from('profiles').select('*').eq('id', customerProfile.profile_id).maybeSingle();
+              const prof = data as Profile | null;
+              if (prof) setEnquiry({ name: `${prof.first_name} ${prof.last_name}`, email: prof.email, phone: prof.phone ?? '', details: enquiry.details });
+            }}>Auto-fill</button>
+          </div>
+        </form>
+      </GlassCard>
 
       <GlassCard style={{ padding: 0 }}>
         {payments.length === 0 ? (

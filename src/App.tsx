@@ -14,7 +14,6 @@ import { BookCleaningPage } from './pages/dashboard/BookCleaningPage';
 import { BookingsPage } from './pages/dashboard/BookingsPage';
 import { PaymentsPage } from './pages/dashboard/PaymentsPage';
 import { InvoicesPage } from './pages/dashboard/InvoicesPage';
-import { ReviewsPage } from './pages/dashboard/ReviewsPage';
 import { SupportPage } from './pages/dashboard/SupportPage';
 import { NotificationsPage } from './pages/dashboard/NotificationsPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
@@ -40,7 +39,6 @@ function App() {
                   <Route path="bookings" element={<BookingsPage />} />
                   <Route path="payments" element={<PaymentsPage />} />
                   <Route path="invoices" element={<InvoicesPage />} />
-                  <Route path="reviews" element={<ReviewsPage />} />
                   <Route path="support" element={<SupportPage />} />
                   <Route path="notifications" element={<NotificationsPage />} />
                   <Route path="settings" element={<SettingsPage />} />

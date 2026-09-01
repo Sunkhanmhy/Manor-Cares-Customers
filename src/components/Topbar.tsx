@@ -27,7 +27,7 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
           aria-label={`Notifications, ${unreadCount} unread`}
           style={{ position: 'relative', padding: '9px 12px' }}
         >
-          🔔
+          <span className="icon">🔔</span>
           {unreadCount > 0 && (
             <span
               className="badge badge-red"

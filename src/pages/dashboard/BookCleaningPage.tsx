@@ -146,7 +146,7 @@ export function BookCleaningPage() {
   if (confirmedNumber) {
     return (
       <GlassCard style={{ padding: 40, maxWidth: 480, margin: '40px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+        <div className="icon" style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
         <h2 style={{ fontSize: 20, marginBottom: 8 }}>Booking Confirmed!</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 6 }}>Your booking reference is</p>
         <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--clr-green)', marginBottom: 24 }}>{confirmedNumber}</p>
