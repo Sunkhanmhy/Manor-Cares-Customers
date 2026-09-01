@@ -35,7 +35,7 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* global font size token, adjustable via Settings */
-  --global-font-size: 15px;
+  --global-font-size: 14px;
 }
 
 * {
@@ -343,8 +343,18 @@ textarea.input:focus {
 }
 
 /* Icon defaults */
-.icon {
-  color: var(--clr-white);
+.icon,
+.fa,
+.fas,
+.far,
+.fab,
+.fa-solid,
+.fa-regular,
+.fa-brands,
+.fa-icon,
+i.fa,
+svg.fa {
+  color: var(--clr-white) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
