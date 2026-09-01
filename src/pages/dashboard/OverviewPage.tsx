@@ -94,6 +94,114 @@ export function OverviewPage() {
         </p>
       </GlassCard>
 
+      {/* Dashboard CTA cards */}
+      <div>
+        {/* lazy local import to keep file small */}
+        <div className="cta-grid">
+          {/* We'll render CTA cards via a small inline list to avoid heavy refactors */}
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">👤</span>
+              <div>
+                <div className="cta-title">Profile</div>
+                <div className="cta-sub">View and edit your personal details</div>
+              </div>
+            </div>
+            <a href="/dashboard/profile" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Profile</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">📍</span>
+              <div>
+                <div className="cta-title">My Addresses</div>
+                <div className="cta-sub">Manage your saved addresses</div>
+              </div>
+            </div>
+            <a href="/dashboard/addresses" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Addresses</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">🧽</span>
+              <div>
+                <div className="cta-title">Book a Cleaning</div>
+                <div className="cta-sub">Create a new booking</div>
+              </div>
+            </div>
+            <a href="/dashboard/book" className="btn btn-primary" style={{ marginTop: 8 }}>Book Now</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">📅</span>
+              <div>
+                <div className="cta-title">My Bookings</div>
+                <div className="cta-sub">See your booking history</div>
+              </div>
+            </div>
+            <a href="/dashboard/bookings" className="btn btn-ghost" style={{ marginTop: 8 }}>View Bookings</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">💳</span>
+              <div>
+                <div className="cta-title">Payments</div>
+                <div className="cta-sub">View and manage payments</div>
+              </div>
+            </div>
+            <a href="/dashboard/payments" className="btn btn-ghost" style={{ marginTop: 8 }}>Payments</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">🧾</span>
+              <div>
+                <div className="cta-title">Invoices</div>
+                <div className="cta-sub">View invoices and receipts</div>
+              </div>
+            </div>
+            <a href="/dashboard/invoices" className="btn btn-ghost" style={{ marginTop: 8 }}>Invoices</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">🎧</span>
+              <div>
+                <div className="cta-title">Support</div>
+                <div className="cta-sub">Create tickets or contact support</div>
+              </div>
+            </div>
+            <a href="/dashboard/support" className="btn btn-ghost" style={{ marginTop: 8 }}>Support</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">⚙️</span>
+              <div>
+                <div className="cta-title">Settings</div>
+                <div className="cta-sub">App preferences & account settings</div>
+              </div>
+            </div>
+            <a href="/dashboard/settings" className="btn btn-ghost" style={{ marginTop: 8 }}>Settings</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">🔒</span>
+              <div>
+                <div className="cta-title">Password & Security</div>
+                <div className="cta-sub">Security settings for your account</div>
+              </div>
+            </div>
+            <a href="/dashboard/security" className="btn btn-ghost" style={{ marginTop: 8 }}>Security</a>
+          </GlassCard>
+          <GlassCard className="cta-card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span className="icon">🔔</span>
+              <div>
+                <div className="cta-title">Notifications</div>
+                <div className="cta-sub">View recent alerts and messages</div>
+              </div>
+            </div>
+            <a href="/dashboard/notifications" className="btn btn-ghost" style={{ marginTop: 8 }}>Notifications</a>
+          </GlassCard>
+        </div>
+      </div>
+
       {loading || !stats ? (
         <div className="stat-grid">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -153,7 +261,7 @@ function StatCard({ label, value, icon, accent = false }: { label: string; value
   return (
     <GlassCard style={{ padding: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <span style={{ fontSize: 20 }}>{icon}</span>
+        <span className="icon">{icon}</span>
         <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{label}</span>
       </div>
       <div style={{ fontSize: 24, fontWeight: 700, color: accent ? 'var(--clr-green)' : 'var(--clr-white)' }}>{value}</div>

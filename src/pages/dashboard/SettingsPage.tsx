@@ -12,6 +12,8 @@ export function SettingsPage() {
 
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [preferredContact, setPreferredContact] = useState('email');
+  const [theme, setTheme] = useState<'auto' | 'dark' | 'light'>(() => (localStorage.getItem('mc_theme') as 'auto' | 'dark' | 'light') ?? 'auto');
+  const [textSize, setTextSize] = useState<'small' | 'medium' | 'large'>(() => (localStorage.getItem('mc_text_size') as 'small' | 'medium' | 'large') ?? 'medium');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -43,12 +45,28 @@ export function SettingsPage() {
       ]);
       if (prefsRes.error || custRes.error) throw prefsRes.error ?? custRes.error;
       await refreshProfile();
+      // persist personalization locally
+      localStorage.setItem('mc_theme', theme);
+      localStorage.setItem('mc_text_size', textSize);
+      applyPersonalization();
       toast.success('Settings saved.');
     } catch {
       toast.error('We could not save your settings. Please try again.');
     } finally {
       setSaving(false);
     }
+  }
+
+  function applyPersonalization() {
+    // theme
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    // text size
+    const size = textSize === 'small' ? '14px' : textSize === 'large' ? '17px' : '15px';
+    document.documentElement.style.setProperty('--global-font-size', size);
   }
 
   if (loading || !prefs) {
@@ -61,6 +79,25 @@ export function SettingsPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 520 }}>
+      <GlassCard style={{ padding: 24 }}>
+        <h3 style={{ fontSize: 16, marginBottom: 12 }}>Personalization</h3>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+          <label style={{ minWidth: 110, color: 'var(--text-muted)' }}>Theme</label>
+          <select className="input" value={theme} onChange={(e) => setTheme(e.target.value as any)}>
+            <option value="auto">Auto</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <label style={{ minWidth: 110, color: 'var(--text-muted)' }}>Text Size</label>
+          <select className="input" value={textSize} onChange={(e) => setTextSize(e.target.value as any)}>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+      </GlassCard>
       <GlassCard style={{ padding: 24 }}>
         <h3 style={{ fontSize: 16, marginBottom: 16 }}>Notification Preferences</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

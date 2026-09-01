@@ -22,12 +22,20 @@
   --text-on-light: #14263b;
   --clr-deep-black: #050505;
 
+  /* Global icon sizing tokens */
+  --icon-size-desktop: 22px;
+  --icon-size-tablet: 20px;
+  --icon-size-mobile: 18px;
+
   color-scheme: dark;
   color: var(--text);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* global font size token, adjustable via Settings */
+  --global-font-size: 15px;
 }
 
 * {
@@ -37,7 +45,9 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  font: 15px/1.5 var(--sans);
+  font-family: var(--sans);
+  font-size: var(--global-font-size);
+  line-height: 1.5;
   color: var(--text);
   background: radial-gradient(circle at 15% 15%, rgba(21, 101, 192, 0.55), transparent 45%),
     radial-gradient(circle at 85% 20%, rgba(18, 163, 117, 0.4), transparent 50%),
@@ -277,6 +287,7 @@ textarea.input:focus {
   position: sticky;
   top: 0;
   height: 100dvh;
+  background: #000; /* Sidebar background set to black */
 }
 
 .sidebar-link {
@@ -287,7 +298,7 @@ textarea.input:focus {
   border-radius: 10px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 15px; /* increased global sidebar text */
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
 }
@@ -328,7 +339,49 @@ textarea.input:focus {
   padding: 14px clamp(16px, 4vw, 36px);
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
+  background: #000; /* Topbar / header background set to black */
 }
+
+/* Icon defaults */
+.icon {
+  color: var(--clr-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon { margin-bottom: 6px; }
+
+/* Responsive icon sizes */
+.icon { font-size: var(--icon-size-desktop); }
+@media (max-width: 1200px) { .icon { font-size: var(--icon-size-tablet); } }
+@media (max-width: 900px) { .icon { font-size: var(--icon-size-mobile); } }
+
+/* CTA grid for dashboard */
+.cta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .cta-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 580px) {
+  .cta-grid { grid-template-columns: 1fr; }
+}
+
+.cta-card {
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cta-card .cta-title { font-size: 15px; font-weight: 700; }
+.cta-card .cta-sub { color: var(--text-muted); font-size: 13px; }
 
 .hamburger-btn {
   display: none;

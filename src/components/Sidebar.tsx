@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { to: '/dashboard/bookings', label: 'My Bookings', icon: '📅' },
   { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
   { to: '/dashboard/invoices', label: 'Invoices', icon: '🧾' },
-  { to: '/dashboard/reviews', label: 'Reviews', icon: '⭐' },
   { to: '/dashboard/support', label: 'Support', icon: '🎧' },
   { to: '/dashboard/notifications', label: 'Notifications', icon: '🔔' },
   { to: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
@@ -62,7 +61,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               onClick={onClose}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
             >
-              <span aria-hidden="true">{item.icon}</span>
+              <span aria-hidden="true" className="icon">{item.icon}</span>
               <span>{item.label}</span>
               {item.to === '/dashboard/notifications' && unreadCount > 0 && (
                 <span className="badge badge-red" style={{ marginLeft: 'auto', padding: '2px 8px' }}>

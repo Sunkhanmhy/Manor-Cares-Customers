@@ -12,6 +12,9 @@ export function ProfilePage() {
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastName, setLastName] = useState(profile?.last_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [idDocumentUrl, setIdDocumentUrl] = useState(profile?.id_document_url ?? '');
+  const [careerStatus, setCareerStatus] = useState(profile?.career_status ?? '');
+  const [relationshipStatus, setRelationshipStatus] = useState(profile?.relationship_status ?? '');
   const [dateOfBirth, setDateOfBirth] = useState(profile?.date_of_birth ?? '');
   const [gender, setGender] = useState(profile?.gender ?? '');
   const [saving, setSaving] = useState(false);
@@ -29,6 +32,9 @@ export function ProfilePage() {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           phone: phone.trim() || null,
+          id_document_url: idDocumentUrl || null,
+          career_status: careerStatus || null,
+          relationship_status: relationshipStatus || null,
           date_of_birth: dateOfBirth || null,
           gender: gender || null,
         })
@@ -95,6 +101,27 @@ export function ProfilePage() {
               <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="field">
+              <label>Career Status</label>
+              <select className="input" value={careerStatus ?? ''} onChange={(e) => setCareerStatus(e.target.value)}>
+                <option value="">Select</option>
+                <option value="employed">Employed</option>
+                <option value="self-employed">Self-employed</option>
+                <option value="student">Student</option>
+                <option value="unemployed">Unemployed</option>
+                <option value="retired">Retired</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Relationship Status</label>
+              <select className="input" value={relationshipStatus ?? ''} onChange={(e) => setRelationshipStatus(e.target.value)}>
+                <option value="">Prefer not to say</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="field">
               <label>Date of Birth</label>
               <input type="date" className="input" value={dateOfBirth ?? ''} onChange={(e) => setDateOfBirth(e.target.value)} />
             </div>
@@ -107,6 +134,34 @@ export function ProfilePage() {
                 <option value="other">Other</option>
               </select>
             </div>
+          </div>
+
+          <div style={{ marginTop: 6 }}>
+            <label className="field">
+              <span>Upload ID Document</span>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={async (e) => {
+                  const f = (e.target as HTMLInputElement).files?.[0];
+                  if (!f) return;
+                  const fileName = `id_${profile!.id}_${Date.now()}_${f.name}`;
+                  const { data, error: upErr } = await supabase.storage.from('id-docs').upload(fileName, f, { cacheControl: '3600', upsert: false });
+                  if (upErr) {
+                    toast.error('Upload failed. Please try again.');
+                    return;
+                  }
+                  const { data: urlData } = supabase.storage.from('id-docs').getPublicUrl(data.path);
+                  setIdDocumentUrl(urlData.publicUrl);
+                  toast.success('ID uploaded. Save to persist.');
+                }}
+              />
+            </label>
+            {idDocumentUrl && (
+              <div style={{ marginTop: 8 }}>
+                <a href={idDocumentUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">View Uploaded ID</a>
+              </div>
+            )}
           </div>
           <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={saving}>
             {saving ? <Spinner size={16} /> : 'Save Changes'}

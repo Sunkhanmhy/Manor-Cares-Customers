@@ -107,10 +107,10 @@ export function BookingsPage() {
                 <StatusBadge status={booking.booking_status} kind="booking" />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>
-                <span>📅 {formatDate(booking.booking_date)} · {formatTime(booking.booking_time)}</span>
-                <span>📍 {booking.property_address}</span>
-                <span>👥 {booking.assigned_staff ?? 'Not yet assigned'}</span>
-                <span>💰 {formatCurrency(booking.final_price ?? booking.estimated_price)}</span>
+                <span><span className="icon">📅</span> {formatDate(booking.booking_date)} · {formatTime(booking.booking_time)}</span>
+                <span><span className="icon">📍</span> {booking.property_address}</span>
+                <span><span className="icon">👥</span> {booking.assigned_staff ?? 'Not yet assigned'}</span>
+                <span><span className="icon">💰</span> {formatCurrency(booking.final_price ?? booking.estimated_price)}</span>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <StatusBadge status={booking.payment_status} kind="payment" />

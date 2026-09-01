@@ -22,6 +22,9 @@ export interface Profile {
   last_name: string;
   email: string;
   phone: string | null;
+  id_document_url?: string | null;
+  career_status?: string | null;
+  relationship_status?: string | null;
   avatar_url: string | null;
   date_of_birth: string | null;
   gender: string | null;
@@ -38,8 +41,30 @@ export interface CustomerProfile {
   preferred_contact_method: string;
   customer_status: string;
   notes: string | null;
+  invited_by_profile_id?: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Invite {
+  id: number;
+  token: string;
+  inviter_profile_id: number | null;
+  invitee_email: string | null;
+  used: boolean;
+  used_by_profile_id: number | null;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export interface PricePlan {
+  id: number;
+  name: string;
+  price: number;
+  currency: string;
+  features: string[];
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface Address {

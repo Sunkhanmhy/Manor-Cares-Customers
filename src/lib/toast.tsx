@@ -76,7 +76,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               }`,
             }}
           >
-            <span style={{ fontSize: 15 }}>{t.kind === 'success' ? '✅' : t.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
+            <span className="icon" style={{ fontSize: 15 }}>{t.kind === 'success' ? '✅' : t.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
             <span style={{ fontSize: 13.5, color: 'var(--text)' }}>{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
