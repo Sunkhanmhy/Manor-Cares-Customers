@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationsContext';
+import Icon from './Icon';
 
 export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
   const { profile } = useAuth();
@@ -17,7 +18,7 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
         aria-label="Toggle navigation menu"
         style={{ padding: '8px 12px' }}
       >
-        ☰
+        <Icon name="menu" size={20} />
       </button>
       <h1 style={{ fontSize: '1.125rem' }}>{title}</h1>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -27,7 +28,7 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
           aria-label={`Notifications, ${unreadCount} unread`}
           style={{ position: 'relative', padding: '9px 12px' }}
         >
-          <span className="icon">🔔</span>
+          <Icon name="notifications" size={20} />
           {unreadCount > 0 && (
             <span
               className="badge badge-red"

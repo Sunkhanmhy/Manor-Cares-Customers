@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import type { Payment, PricePlan, Profile } from '../../types/database';
@@ -123,9 +124,9 @@ export function PaymentsPage() {
         </form>
       </GlassCard>
 
-      <GlassCard style={{ padding: 0 }}>
+        <GlassCard style={{ padding: 0 }}>
         {payments.length === 0 ? (
-          <EmptyState icon="💳" title="No payment history" message="Payments for your bookings will appear here." />
+          <EmptyState icon={<Icon name="payments" size={40} />} title="No payment history" message="Payments for your bookings will appear here." />
         ) : (
           <div className="scroll-x">
             <table className="table-clean">

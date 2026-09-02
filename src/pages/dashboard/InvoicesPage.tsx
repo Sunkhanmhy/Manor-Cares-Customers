@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
 import { EmptyState } from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { formatCurrency, formatDate } from '../../lib/format';
@@ -88,7 +89,7 @@ export function InvoicesPage() {
         {loading ? (
           <div style={{ padding: 30, color: 'var(--text-muted)' }}>Loading invoices…</div>
         ) : invoices.length === 0 ? (
-          <EmptyState icon="🧾" title="No invoices yet" message="Invoices generated for your bookings will appear here." />
+          <EmptyState icon={<Icon name="invoice" size={40} />} title="No invoices yet" message="Invoices generated for your bookings will appear here." />
         ) : (
           <div className="scroll-x">
             <table className="table-clean">

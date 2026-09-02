@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react';
 
+import Icon from './Icon';
+
 export function EmptyState({
-  icon = '📭',
+  icon = <Icon name="default" />,
   title,
   message,
   action,
 }: {
-  icon?: string;
+  icon?: ReactNode;
   title: string;
   message?: string;
   action?: ReactNode;

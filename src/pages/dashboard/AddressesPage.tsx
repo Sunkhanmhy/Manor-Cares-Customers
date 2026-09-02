@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { Spinner } from '../../components/Spinner';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import type { Address } from '../../types/database';
@@ -198,7 +199,7 @@ export function AddressesPage() {
         </div>
       ) : addresses.length === 0 ? (
         <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon="📍" title="No addresses yet" message="Add an address to make booking a cleaning faster." />
+          <EmptyState icon={<Icon name="location" size={40} />} title="No addresses yet" message="Add an address to make booking a cleaning faster." />
         </GlassCard>
       ) : (
         <div className="card-grid">

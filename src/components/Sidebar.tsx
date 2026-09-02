@@ -1,23 +1,24 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationsContext';
+import Icon from './Icon';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊', end: true },
-  { to: '/dashboard/profile', label: 'My Profile', icon: '👤' },
-  { to: '/dashboard/addresses', label: 'My Addresses', icon: '📍' },
-  { to: '/dashboard/book', label: 'Book a Cleaning', icon: '🧽' },
-  { to: '/dashboard/bookings', label: 'My Bookings', icon: '📅' },
-  { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
-  { to: '/dashboard/invoices', label: 'Invoices', icon: '🧾' },
-  { to: '/dashboard/support', label: 'Support', icon: '🎧' },
-  { to: '/dashboard/notifications', label: 'Notifications', icon: '🔔' },
-  { to: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
-  { to: '/dashboard/security', label: 'Password & Security', icon: '🔒' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', end: true },
+  { to: '/dashboard/profile', label: 'My Profile', icon: 'user' },
+  { to: '/dashboard/addresses', label: 'My Addresses', icon: 'location' },
+  { to: '/dashboard/book', label: 'Book a Cleaning', icon: 'clean' },
+  { to: '/dashboard/bookings', label: 'My Bookings', icon: 'calendar' },
+  { to: '/dashboard/payments', label: 'Payments', icon: 'payments' },
+  { to: '/dashboard/invoices', label: 'Invoices', icon: 'invoice' },
+  { to: '/dashboard/support', label: 'Support', icon: 'support' },
+  { to: '/dashboard/notifications', label: 'Notifications', icon: 'notifications' },
+  { to: '/dashboard/settings', label: 'Settings', icon: 'settings' },
+  { to: '/dashboard/security', label: 'Password & Security', icon: 'security' },
 ] as const;
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, refreshProfile } = useAuth();
   const { unreadCount } = useNotifications();
 
   return (
@@ -58,10 +59,18 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               key={item.to}
               to={item.to}
               end={'end' in item ? item.end : false}
-              onClick={onClose}
+              onClick={async () => {
+                try {
+                  // ensure profile/customerProfile are refreshed before the page mounts
+                  await refreshProfile?.();
+                } catch {
+                  // ignore — navigation should proceed even if refresh fails
+                }
+                onClose();
+              }}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
             >
-              <span aria-hidden="true" className="icon">{item.icon}</span>
+              <span aria-hidden="true"><Icon name={item.icon as string} size={20} /></span>
               <span>{item.label}</span>
               {item.to === '/dashboard/notifications' && unreadCount > 0 && (
                 <span className="badge badge-red" style={{ marginLeft: 'auto', padding: '2px 8px' }}>
@@ -77,7 +86,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             {profile?.first_name} {profile?.last_name}
           </div>
           <button className="btn btn-ghost btn-block" onClick={() => signOut()}>
-            🚪 Logout
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="logout" size={18} /> Logout
+            </span>
           </button>
         </div>
       </aside>

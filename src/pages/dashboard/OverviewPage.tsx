@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { StatusBadge } from '../../components/StatusBadge';
+import Icon from '../../components/Icon';
 import { formatCurrency, formatDate } from '../../lib/format';
 import type { Booking } from '../../types/database';
 
@@ -101,9 +102,11 @@ export function OverviewPage() {
           {/* We'll render CTA cards via a small inline list to avoid heavy refactors */}
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">👤</span>
-              <div>
-                <div className="cta-title">Profile</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="user" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Profile</div>
                 <div className="cta-sub">View and edit your personal details</div>
               </div>
             </div>
@@ -111,9 +114,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">📍</span>
-              <div>
-                <div className="cta-title">My Addresses</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="location" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>My Addresses</div>
                 <div className="cta-sub">Manage your saved addresses</div>
               </div>
             </div>
@@ -121,9 +126,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">🧽</span>
-              <div>
-                <div className="cta-title">Book a Cleaning</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="clean" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Book a Cleaning</div>
                 <div className="cta-sub">Create a new booking</div>
               </div>
             </div>
@@ -131,9 +138,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">📅</span>
-              <div>
-                <div className="cta-title">My Bookings</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="calendar" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>My Bookings</div>
                 <div className="cta-sub">See your booking history</div>
               </div>
             </div>
@@ -141,9 +150,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">💳</span>
-              <div>
-                <div className="cta-title">Payments</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="payments" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Payments</div>
                 <div className="cta-sub">View and manage payments</div>
               </div>
             </div>
@@ -151,9 +162,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">🧾</span>
-              <div>
-                <div className="cta-title">Invoices</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="invoice" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Invoices</div>
                 <div className="cta-sub">View invoices and receipts</div>
               </div>
             </div>
@@ -161,9 +174,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">🎧</span>
-              <div>
-                <div className="cta-title">Support</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="support" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Support</div>
                 <div className="cta-sub">Create tickets or contact support</div>
               </div>
             </div>
@@ -171,9 +186,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">⚙️</span>
-              <div>
-                <div className="cta-title">Settings</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="settings" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Settings</div>
                 <div className="cta-sub">App preferences & account settings</div>
               </div>
             </div>
@@ -181,9 +198,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">🔒</span>
-              <div>
-                <div className="cta-title">Password & Security</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="security" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Password & Security</div>
                 <div className="cta-sub">Security settings for your account</div>
               </div>
             </div>
@@ -191,9 +210,11 @@ export function OverviewPage() {
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span className="icon">🔔</span>
-              <div>
-                <div className="cta-title">Notifications</div>
+              <div style={{ width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="notifications" size={48} />
+              </div>
+              <div style={{ width: '80%' }}>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800 }}>Notifications</div>
                 <div className="cta-sub">View recent alerts and messages</div>
               </div>
             </div>
@@ -211,10 +232,10 @@ export function OverviewPage() {
       ) : (
         <>
           <div className="stat-grid">
-            <StatCard label="Total Bookings" value={stats.totalBookings} icon="📅" />
-            <StatCard label="Active Bookings" value={stats.activeBookings} icon="🧽" />
-            <StatCard label="Completed Bookings" value={stats.completedBookings} icon="✅" />
-            <StatCard label="Outstanding Balance" value={formatCurrency(stats.outstandingBalance)} icon="💰" accent />
+            <StatCard label="Total Bookings" value={stats.totalBookings} icon="calendar" />
+            <StatCard label="Active Bookings" value={stats.activeBookings} icon="clean" />
+            <StatCard label="Completed Bookings" value={stats.completedBookings} icon="check" />
+            <StatCard label="Outstanding Balance" value={formatCurrency(stats.outstandingBalance)} icon="money" accent />
           </div>
 
           <div className="card-grid">
@@ -257,11 +278,11 @@ export function OverviewPage() {
   );
 }
 
-function StatCard({ label, value, icon, accent = false }: { label: string; value: string | number; icon: string; accent?: boolean }) {
+function StatCard({ label, value, icon, accent = false }: { label: string; value: string | number; icon: string | React.ReactNode; accent?: boolean }) {
   return (
     <GlassCard style={{ padding: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <span className="icon">{icon}</span>
+        <span>{typeof icon === 'string' ? <Icon name={icon as string} size={20} /> : icon}</span>
         <span style={{ fontSize: '0.78125rem', color: 'var(--text-muted)' }}>{label}</span>
       </div>
       <div style={{ fontSize: '1.5rem', fontWeight: 700, color: accent ? 'var(--clr-green)' : 'var(--clr-white)' }}>{value}</div>
