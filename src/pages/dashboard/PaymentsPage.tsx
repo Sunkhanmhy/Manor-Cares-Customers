@@ -64,28 +64,34 @@ export function PaymentsPage() {
 
       <div>
         <h3 style={{ fontSize: '1.125rem', marginBottom: 8 }}>Price Plans</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
-          {plans.map((p) => (
-            <GlassCard key={p.id} style={{ padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '1rem', fontWeight: 700 }}>{p.name}</div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{p.currency} {p.price.toLocaleString()}</div>
+        {plans.length === 0 ? (
+          <GlassCard style={{ padding: 10 }}>
+            <EmptyState icon={<Icon name="payments" size={40} />} title="No data available. Update your record, now!" />
+          </GlassCard>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
+            {plans.map((p) => (
+              <GlassCard key={p.id} style={{ padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700 }}>{p.name}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{p.currency} {p.price.toLocaleString()}</div>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(Number(p.price), p.currency)}</div>
                 </div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(Number(p.price), p.currency)}</div>
-              </div>
-              <ul style={{ marginTop: 10, paddingLeft: 18 }}>
-                {p.features.map((f, i) => (
-                  <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 6 }}>{f}</li>
-                ))}
-              </ul>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-primary">Choose</button>
-                <button className="btn btn-ghost">Details</button>
-              </div>
-            </GlassCard>
-          ))}
-        </div>
+                <ul style={{ marginTop: 10, paddingLeft: 18 }}>
+                  {p.features.map((f, i) => (
+                    <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 6 }}>{f}</li>
+                  ))}
+                </ul>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-primary">Choose</button>
+                  <button className="btn btn-ghost">Details</button>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+        )}
       </div>
 
       <GlassCard style={{ padding: 18, marginTop: 8 }}>
@@ -126,7 +132,7 @@ export function PaymentsPage() {
 
         <GlassCard style={{ padding: 0 }}>
         {payments.length === 0 ? (
-          <EmptyState icon={<Icon name="payments" size={40} />} title="No payment history" message="Payments for your bookings will appear here." />
+          <EmptyState icon={<Icon name="payments" size={40} />} title="No data available. Update your record, now!" message="Payments for your bookings will appear here." />
         ) : (
           <div className="scroll-x">
             <table className="table-clean">

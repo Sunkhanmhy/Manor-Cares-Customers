@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationsContext';
 import { GlassCard } from '../../components/GlassCard';
-import { SkeletonCard } from '../../components/Skeleton';
-import { EmptyState } from '../../components/EmptyState';
 import { formatDateTime } from '../../lib/format';
 import type { AppNotification, NotificationType } from '../../types/database';
 import Icon from '../../components/Icon';
 
+const PAGE_SIZE = 15;
 const ICONS: Record<NotificationType, string> = {
   booking_confirmed: 'calendar',
   cleaner_assigned: 'people',
@@ -25,7 +24,7 @@ export function NotificationsPage() {
   const { refreshUnreadCount } = useNotifications();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [onlyUnread, setOnlyUnread] = useState(false);
+  const [page, setPage] = useState(1);
 
   async function load() {
     if (!profile) return;
@@ -40,8 +39,40 @@ export function NotificationsPage() {
   }
 
   useEffect(() => {
-    load();
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const channel = supabase
+      .channel(`customer-notifications-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `profile_id=eq.${profile.id}` },
+        (payload) => {
+          const incoming = payload.new as AppNotification | undefined;
+
+          setNotifications((prev) => {
+            if (payload.eventType === 'INSERT' && incoming) {
+              return [incoming, ...prev.filter((item) => item.id !== incoming.id)];
+            }
+            if (payload.eventType === 'UPDATE' && incoming) {
+              return prev.map((item) => (item.id === incoming.id ? { ...item, ...incoming } : item));
+            }
+            if (payload.eventType === 'DELETE') {
+              return prev.filter((item) => item.id !== (payload.old as AppNotification).id);
+            }
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [profile]);
 
   async function markAsRead(id: number) {
@@ -57,61 +88,90 @@ export function NotificationsPage() {
     refreshUnreadCount();
   }
 
-  const visible = onlyUnread ? notifications.filter((n) => !n.is_read) : notifications;
+  const totalPages = Math.max(1, Math.ceil(notifications.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const visibleNotifications = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return notifications.slice(start, start + PAGE_SIZE);
+  }, [notifications, safePage]);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    );
-  }
+  useEffect(() => {
+    setPage(1);
+  }, [profile?.id]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <label className="checkbox-row" style={{ alignItems: 'center' }}>
-          <input type="checkbox" checked={onlyUnread} onChange={(e) => setOnlyUnread(e.target.checked)} />
-          Show unread only
-        </label>
-        <button className="btn btn-ghost" onClick={markAllAsRead} style={{ fontSize: '0.78125rem' }}>
-          Mark all as read
-        </button>
-      </div>
-
-      {visible.length === 0 ? (
-        <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon={<Icon name="notifications" size={40} />} title="No notifications" message="You're all caught up!" />
-        </GlassCard>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {visible.map((n) => (
-            <GlassCard
-              key={n.id}
-              style={{
-                padding: 16,
-                display: 'flex',
-                gap: 12,
-                cursor: n.is_read ? 'default' : 'pointer',
-                borderLeft: n.is_read ? undefined : '3px solid var(--clr-blue)',
-              }}
-              onClick={() => !n.is_read && markAsRead(n.id)}
-            >
-              <span><Icon name={ICONS[n.type] ?? 'notifications'} size={18} /></span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <strong style={{ fontSize: '0.84375rem' }}>{n.title}</strong>
-                  {!n.is_read && <span className="badge badge-blue">New</span>}
-                </div>
-                <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginTop: 4 }}>{n.message}</p>
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: 6 }}>{formatDateTime(n.created_at)}</p>
-              </div>
-            </GlassCard>
-          ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <GlassCard style={{ padding: 18 }} strong>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="notifications" size={18} />
+            <h3 style={{ margin: 0, fontSize: '1rem' }}>Account Activity</h3>
+          </div>
+          <button type="button" className="btn btn-ghost" style={{ padding: '7px 12px', fontSize: '0.75rem' }} onClick={() => void markAllAsRead()}>
+            Mark all as read
+          </button>
         </div>
-      )}
+
+        <div className="scroll-x">
+          <table className="table-clean">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Received</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '18px 14px' }}>
+                    Loading notifications…
+                  </td>
+                </tr>
+              ) : notifications.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '18px 14px' }}>
+                    No data available. Update your record, now!
+                  </td>
+                </tr>
+              ) : (
+                visibleNotifications.map((notification) => (
+                  <tr key={notification.id} onClick={() => !notification.is_read && void markAsRead(notification.id)} style={{ cursor: notification.is_read ? 'default' : 'pointer' }}>
+                    <td>
+                      <span className="badge badge-blue">
+                        <Icon name={ICONS[notification.type] ?? 'notifications'} size={12} />
+                        {notification.type.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: 700 }}>{notification.title}</td>
+                    <td>{notification.message}</td>
+                    <td>{formatDateTime(notification.created_at)}</td>
+                    <td>
+                      {notification.is_read ? <span className="badge badge-green">Read</span> : <span className="badge badge-amber">Unread</span>}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </GlassCard>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+          Page {safePage} of {totalPages}
+        </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn-ghost" disabled={safePage <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>
+            Previous
+          </button>
+          <button type="button" className="btn btn-primary" disabled={safePage >= totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

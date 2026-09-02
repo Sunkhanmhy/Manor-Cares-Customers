@@ -18,7 +18,7 @@ export default function Icon({ name, size = 40, className = '' }: { name: string
       height={size}
       className={`icon ${className}`}
       alt={name}
-      style={{ width: size, height: size, flex: '0 0 auto' }}
+      style={{ width: size, height: size, flex: '0 0 auto', filter: 'brightness(0) invert(1)' }}
     />
   );
 }

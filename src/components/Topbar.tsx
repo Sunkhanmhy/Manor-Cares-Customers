@@ -47,12 +47,19 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '0.8125rem',
-            fontWeight: 700,
-            color: 'var(--clr-white)',
+            overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
-          {initials || '🙂'}
+          {profile?.profile_picture_url || profile?.avatar_url ? (
+            <img
+              src={profile?.profile_picture_url || profile?.avatar_url || '/logo.jpg'}
+              alt="User profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : initials || (
+            <img src="/logo.jpg" alt="Logo fallback" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          )}
         </div>
       </div>
     </header>

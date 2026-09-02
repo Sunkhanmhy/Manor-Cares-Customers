@@ -89,7 +89,7 @@ export function InvoicesPage() {
         {loading ? (
           <div style={{ padding: 30, color: 'var(--text-muted)' }}>Loading invoices…</div>
         ) : invoices.length === 0 ? (
-          <EmptyState icon={<Icon name="invoice" size={40} />} title="No invoices yet" message="Invoices generated for your bookings will appear here." />
+          <EmptyState icon={<Icon name="invoice" size={40} />} title="No data available. Update your record, now!" message="Invoices generated for your bookings will appear here." />
         ) : (
           <div className="scroll-x">
             <table className="table-clean">
