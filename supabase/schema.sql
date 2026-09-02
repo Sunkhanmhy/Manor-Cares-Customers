@@ -923,3 +923,183 @@ begin
     raise notice 'Duplicate auth.users email detected: % -> %', r.email, r.ids;
   end loop;
 end$$;
+
+
+
+
+
+create schema if not exists private;
+
+alter table public.profiles
+  add column if not exists id_document_url text,
+  add column if not exists career_status text,
+  add column if not exists relationship_status text;
+
+create table if not exists public.price_plans (
+  id bigint generated always as identity primary key,
+  name text not null,
+  price numeric(12,2) not null,
+  currency text not null default 'NGN',
+  features text[] not null default '{}',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists price_plans_name_uidx
+  on public.price_plans (name);
+
+create or replace function private.current_profile_id()
+returns bigint
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select id from public.profiles where user_id = (select auth.uid());
+$$;
+
+create or replace function private.current_customer_id()
+returns bigint
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select cp.id
+  from public.customer_profiles cp
+  join public.profiles p on p.id = cp.profile_id
+  where p.user_id = (select auth.uid());
+$$;
+
+create or replace function private.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where user_id = (select auth.uid()) and role = 'admin'
+  );
+$$;
+
+create or replace function private.is_staff()
+returns boolean
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where user_id = (select auth.uid()) and role = 'staff'
+  );
+$$;
+
+revoke execute on function private.current_profile_id() from public, anon, authenticated;
+revoke execute on function private.current_customer_id() from public, anon, authenticated;
+revoke execute on function private.is_admin() from public, anon, authenticated;
+revoke execute on function private.is_staff() from public, anon, authenticated;
+grant execute on function private.current_profile_id() to authenticated;
+grant execute on function private.current_customer_id() to authenticated;
+grant execute on function private.is_admin() to authenticated;
+grant execute on function private.is_staff() to authenticated;
+
+create table if not exists public.invites (
+  id bigint generated always as identity primary key,
+  token text not null unique,
+  inviter_profile_id bigint references public.profiles (id) on delete set null,
+  invitee_email text,
+  used boolean not null default false,
+  used_by_profile_id bigint references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz
+);
+
+create index if not exists invites_inviter_idx
+  on public.invites (inviter_profile_id);
+
+alter table public.invites enable row level security;
+drop policy if exists invites_select on public.invites;
+create policy invites_select on public.invites for select to authenticated
+  using (inviter_profile_id = private.current_profile_id() or private.is_admin());
+drop policy if exists invites_insert on public.invites;
+create policy invites_insert on public.invites for insert to authenticated
+  with check (inviter_profile_id = private.current_profile_id() or private.is_admin());
+drop policy if exists invites_update on public.invites;
+create policy invites_update on public.invites for update to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+
+alter table public.price_plans enable row level security;
+drop policy if exists price_plans_select on public.price_plans;
+create policy price_plans_select on public.price_plans for select to authenticated
+  using (is_active = true or private.is_admin());
+drop policy if exists price_plans_write on public.price_plans;
+create policy price_plans_write on public.price_plans for all to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+
+insert into public.price_plans (name, price, currency, features)
+values
+  ('Starter Plan', 59999, 'NGN', ARRAY['Up to 1 bedroom, 1 kitchen', 'Maximum (1) restroom per visit', 'Standard cleaning checklist', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor cleaning', 'Shared cleaning team', 'Bespoke outdoor cleaning', 'Emergency addons cleaning']),
+  ('Essential Plan', 99999, 'NGN', ARRAY['Up to 2 bedrooms, 1 kitchen', 'Maximum (2) restrooms per visit', 'Standard cleaning checklist', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor cleaning', 'Dedicated cleaning team', 'Soft-upholsteries cleaning', 'Bespoke outdoor cleaning', 'Emergency addons cleaning']),
+  ('Signature Plan', 199999, 'NGN', ARRAY['Up to 4 bedrooms, 3 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor sanitation', 'Hard-upholsteries cleaning', 'On-demand surface whitening', 'Bespoke outdoor sanitation', 'Emergency addons cleaning', 'Priority scheduling & maintenance']),
+  ('Deluxe Plan', 299999, 'NGN', ARRAY['Up to 5 bedrooms, 4 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke indoor sanitation', 'Hard-upholsteries cleaning', 'On-demand surface whitening', 'Bespoke outdoor sanitation', 'Emergency addons cleaning', 'Priority scheduling & maintenance']),
+  ('Estate Plan', 399999, 'NGN', ARRAY['Up to 7 bedrooms, 5 restrooms', 'Deep-clean checklist add-ons', 'Weekly or 4x-monthly visits', 'Eco-friendly products', 'Bespoke all-round sanitation', 'Deep upholsteries cleaning', 'On-demand surface whitening', 'Emergency addons cleaning', 'On-demand laundry addons services', 'Priority scheduling & maintenance']),
+  ('Platinum Plan', 699999, 'NGN', ARRAY['Unlimited bedrooms & restrooms', 'Deep-clean checklist add-ons', 'Bi-weekly or 8x-monthly visits', 'Eco-friendly products', 'Bespoke all-round sanitation', 'Deep upholsteries cleaning', 'On-demand surface whitening', 'Emergency addons cleaning', 'On-demand laundry addons services', 'Dedicated account manager'])
+on conflict (name) do nothing;
+
+insert into public.cleaning_services (name, slug, description, base_price, price_unit, estimated_duration_minutes, display_order)
+values
+  ('Standard Cleaning', 'standard-cleaning', 'Routine cleaning for everyday upkeep of your home.', 15000, 'flat', 120, 1),
+  ('Deep Cleaning', 'deep-cleaning', 'Thorough top-to-bottom cleaning including hard-to-reach areas.', 30000, 'flat', 240, 2),
+  ('Move-In Cleaning', 'move-in-cleaning', 'Get a new space spotless before you move in.', 35000, 'flat', 240, 3),
+  ('Move-Out Cleaning', 'move-out-cleaning', 'Leave your old space spotless for inspection or handover.', 35000, 'flat', 240, 4),
+  ('Office Cleaning', 'office-cleaning', 'Professional cleaning for offices and commercial spaces.', 25000, 'flat', 180, 5),
+  ('Post-Construction Cleaning', 'post-construction-cleaning', 'Detailed cleanup after renovation or construction work.', 50000, 'flat', 360, 6),
+  ('Airbnb Cleaning', 'airbnb-cleaning', 'Fast turnaround cleaning between short-let guest stays.', 20000, 'flat', 150, 7),
+  ('Recurring Cleaning', 'recurring-cleaning', 'Scheduled weekly, bi-weekly or monthly cleaning plans.', 12000, 'flat', 120, 8),
+  ('Special Event Cleaning', 'special-event-cleaning', 'Before/after cleaning for parties and events.', 28000, 'flat', 200, 9)
+on conflict (slug) do nothing;
+
+create table if not exists public.price_enquiries (
+  id bigint generated always as identity primary key,
+  customer_id bigint references public.customer_profiles (id) on delete set null,
+  name text,
+  email text,
+  phone text,
+  details text,
+  created_at timestamptz not null default now()
+);
+alter table public.price_enquiries enable row level security;
+drop policy if exists price_enquiries_select on public.price_enquiries;
+create policy price_enquiries_select on public.price_enquiries for select to authenticated
+  using (customer_id = private.current_customer_id() or private.is_admin());
+drop policy if exists price_enquiries_insert on public.price_enquiries;
+create policy price_enquiries_insert on public.price_enquiries for insert to authenticated
+  with check (customer_id = private.current_customer_id() or customer_id is null);
+
+create table if not exists public.security_audit_duplicate_auth_emails (
+  id serial primary key,
+  email text not null,
+  user_ids uuid[] not null,
+  duplicate_count integer not null,
+  discovered_at timestamptz not null default now()
+);
+
+do $$
+declare
+  r record;
+begin
+  for r in
+    select email, array_agg(id) as ids, count(*) as cnt
+    from auth.users
+    where email is not null
+    group by email
+    having count(*) > 1
+  loop
+    insert into public.security_audit_duplicate_auth_emails (email, user_ids, duplicate_count)
+    values (r.email, r.ids, r.cnt);
+    raise notice 'Duplicate auth.users email detected: % -> %', r.email, r.ids;
+  end loop;
+end$$;
