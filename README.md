@@ -140,7 +140,7 @@ For server-side operations (Edge Functions deployment, schema apply), you'll use
 
 1. Open your Supabase project dashboard in the browser.
 2. Open **SQL Editor** → New query.
-3. Copy the full contents of `supabase/schema.sql` from this repo and paste into the editor.
+3. Copy the full contents of `supabase/schema.sql` from this repo  and paste into the editor.
 4. Click **RUN**. The SQL is idempotent and safe to re-run.
 
 What this does:
