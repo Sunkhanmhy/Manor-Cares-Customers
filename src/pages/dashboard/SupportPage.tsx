@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { Spinner } from '../../components/Spinner';
 import { formatDateTime } from '../../lib/format';
@@ -211,7 +212,7 @@ export function SupportPage() {
         </div>
       ) : tickets.length === 0 ? (
         <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon="🎧" title="No support tickets" message="Need help? Create a ticket and our team will assist you." />
+          <EmptyState icon={<Icon name="support" size={40} />} title="No support tickets" message="Need help? Create a ticket and our team will assist you." />
         </GlassCard>
       ) : (
         <div className="card-grid">

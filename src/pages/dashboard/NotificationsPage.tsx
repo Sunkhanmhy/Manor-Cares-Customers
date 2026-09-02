@@ -7,16 +7,17 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { formatDateTime } from '../../lib/format';
 import type { AppNotification, NotificationType } from '../../types/database';
+import Icon from '../../components/Icon';
 
 const ICONS: Record<NotificationType, string> = {
-  booking_confirmed: '📅',
-  cleaner_assigned: '🧑‍🔧',
-  service_reminder: '⏰',
-  booking_completed: '✅',
-  payment_received: '💳',
-  invoice_generated: '🧾',
-  support_update: '🎧',
-  promotional: '🎉',
+  booking_confirmed: 'calendar',
+  cleaner_assigned: 'people',
+  service_reminder: 'clock',
+  booking_completed: 'check',
+  payment_received: 'payments',
+  invoice_generated: 'invoice',
+  support_update: 'support',
+  promotional: 'default',
 };
 
 export function NotificationsPage() {
@@ -82,7 +83,7 @@ export function NotificationsPage() {
 
       {visible.length === 0 ? (
         <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon="🔔" title="No notifications" message="You're all caught up!" />
+          <EmptyState icon={<Icon name="notifications" size={40} />} title="No notifications" message="You're all caught up!" />
         </GlassCard>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -98,7 +99,7 @@ export function NotificationsPage() {
               }}
               onClick={() => !n.is_read && markAsRead(n.id)}
             >
-              <span className="icon">{ICONS[n.type] ?? '🔔'}</span>
+              <span><Icon name={ICONS[n.type] ?? 'notifications'} size={18} /></span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                   <strong style={{ fontSize: '0.84375rem' }}>{n.title}</strong>

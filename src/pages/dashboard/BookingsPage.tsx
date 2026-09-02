@@ -6,6 +6,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { formatCurrency, formatDate, formatTime } from '../../lib/format';
@@ -93,7 +94,7 @@ export function BookingsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon="📅" title="No bookings found" message="Book your first cleaning service to see it listed here." />
+          <EmptyState icon={<Icon name="calendar" size={40} />} title="No bookings found" message="Book your first cleaning service to see it listed here." />
         </GlassCard>
       ) : (
         <div className="card-grid">
@@ -107,10 +108,10 @@ export function BookingsPage() {
                 <StatusBadge status={booking.booking_status} kind="booking" />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 14 }}>
-                <span><span className="icon">📅</span> {formatDate(booking.booking_date)} · {formatTime(booking.booking_time)}</span>
-                <span><span className="icon">📍</span> {booking.property_address}</span>
-                <span><span className="icon">👥</span> {booking.assigned_staff ?? 'Not yet assigned'}</span>
-                <span><span className="icon">💰</span> {formatCurrency(booking.final_price ?? booking.estimated_price)}</span>
+                <span><Icon name="calendar" size={18} /> {formatDate(booking.booking_date)} · {formatTime(booking.booking_time)}</span>
+                <span><Icon name="location" size={18} /> {booking.property_address}</span>
+                <span><Icon name="people" size={18} /> {booking.assigned_staff ?? 'Not yet assigned'}</span>
+                <span><Icon name="money" size={18} /> {formatCurrency(booking.final_price ?? booking.estimated_price)}</span>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <StatusBadge status={booking.payment_status} kind="payment" />

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import Icon from '../components/Icon';
 
 type ToastKind = 'success' | 'error' | 'info';
 
@@ -76,7 +77,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               }`,
             }}
           >
-            <span className="icon" style={{ fontSize: '0.9375rem' }}>{t.kind === 'success' ? '✅' : t.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <Icon name={t.kind === 'success' ? 'check' : 'default'} size={18} />
+            </span>
             <span style={{ fontSize: '0.84375rem', color: 'var(--text)' }}>{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}

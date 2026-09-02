@@ -118,6 +118,7 @@ button {
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn:disabled {
@@ -350,74 +351,34 @@ textarea.input:focus {
   background: #000; /* Topbar / header background set to black */
 }
 
-/* Icon defaults */
+/* Icon defaults - only target our .icon and inline SVGs */
 .icon,
-.fa,
-.fas,
-.far,
-.fab,
-.fa-solid,
-.fa-regular,
-.fa-brands,
-.fa-icon,
-i.fa,
-svg.fa,
-svg.svg-inline--fa,
-.fa > svg,
-.fa svg,
-.fa * {
+svg.icon,
+i.fa {
   color: var(--clr-white) !important;
   fill: var(--clr-white) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.dashboard-shell .icon,
-.dashboard-shell .fa,
-.dashboard-shell .fas,
-.dashboard-shell .far,
-.dashboard-shell .fab,
-.dashboard-shell .fa-solid,
-.dashboard-shell .fa-regular,
-.dashboard-shell .fa-brands,
-.dashboard-shell .fa-icon,
-.dashboard-main .icon,
-.dashboard-main .fa,
-.dashboard-main .fas,
-.dashboard-main .far,
-.dashboard-main .fab,
-.dashboard-main .fa-solid,
-.dashboard-main .fa-regular,
-.dashboard-main .fa-brands,
-.dashboard-main .fa-icon,
-.sidebar .icon,
-.sidebar .fa,
-.sidebar .fas,
-.sidebar .far,
-.sidebar .fab,
-.sidebar .fa-solid,
-.sidebar .fa-regular,
-.sidebar .fa-brands,
-.sidebar .fa-icon,
-.topbar .icon,
-.topbar .fa,
-.topbar .fas,
-.topbar .far,
-.topbar .fab,
-.topbar .fa-solid,
-.topbar .fa-regular,
-.topbar .fa-brands,
-.topbar .fa-icon {
-  color: var(--clr-white) !important;
-  fill: var(--clr-white) !important;
+  font-weight: 800; /* force bold appearance for glyph-like icons */
 }
 
 /* Ensure standalone SVG icons inherit color and use currentColor for fill/stroke */
-svg.icon, svg.fa-icon {
+svg.icon {
   color: var(--clr-white) !important;
   fill: currentColor !important;
   stroke: currentColor !important;
+}
+
+/* Make SVG strokes and simple shapes appear bolder to match "bold" icon requirement */
+svg.icon path,
+svg.icon circle,
+svg.icon rect,
+svg.icon line,
+svg.icon polyline,
+svg.icon polygon {
+  stroke-width: 1.6; /* slightly heavier strokes for a bold look */
+  fill: currentColor !important;
 }
 
 .empty-icon { margin-bottom: 6px; }

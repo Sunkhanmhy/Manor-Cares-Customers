@@ -6,6 +6,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 import { formatCurrency } from '../../lib/format';
+import Icon from '../../components/Icon';
 import type { Address, CleaningService } from '../../types/database';
 
 const PROPERTY_TYPES: Array<{ value: 'apartment' | 'house' | 'office' | 'airbnb' | 'other'; label: string }> = [
@@ -146,7 +147,7 @@ export function BookCleaningPage() {
   if (confirmedNumber) {
     return (
       <GlassCard style={{ padding: 40, maxWidth: 480, margin: '40px auto', textAlign: 'center' }}>
-        <div className="icon" style={{ fontSize: '3rem', marginBottom: 12 }}>✅</div>
+        <div style={{ fontSize: '3rem', marginBottom: 12 }}><Icon name="check" size={48} /></div>
         <h2 style={{ fontSize: '1.25rem', marginBottom: 8 }}>Booking Confirmed!</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 6 }}>Your booking reference is</p>
         <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)', marginBottom: 24 }}>{confirmedNumber}</p>
