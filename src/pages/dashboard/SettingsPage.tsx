@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
+import { EmptyState } from '../../components/EmptyState';
 import type { NotificationPreferences } from '../../types/database';
 
 export function SettingsPage() {
@@ -69,11 +70,19 @@ export function SettingsPage() {
     document.documentElement.style.setProperty('--global-font-size', size);
   }
 
-  if (loading || !prefs) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
         <Spinner size={28} />
       </div>
+    );
+  }
+
+  if (!prefs) {
+    return (
+      <GlassCard style={{ padding: 24 }}>
+        <EmptyState title="No data available. Update your record, now!" message="Notification preferences are not set yet." />
+      </GlassCard>
     );
   }
 

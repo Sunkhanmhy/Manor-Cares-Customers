@@ -21,7 +21,7 @@ interface OverviewStats {
 const ACTIVE_STATUSES = ['pending', 'confirmed', 'assigned', 'in_progress'];
 
 export function OverviewPage() {
-  const { profile, customerProfile } = useAuth();
+  const { profile, customerProfile, user } = useAuth();
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,11 +88,12 @@ export function OverviewPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <GlassCard style={{ padding: 24 }}>
-        <h2 style={{ fontSize: '1.375rem', marginBottom: 6 }}>Welcome back, {profile?.first_name}! 👋</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem' }}>
-          Customer #{customerProfile?.customer_number ?? '—'} · Account status:{' '}
-          <span style={{ color: 'var(--clr-green)', fontWeight: 600 }}>{customerProfile?.customer_status ?? 'active'}</span>
-        </p>
+        <h2 style={{ fontSize: '1.375rem', marginBottom: 6 }}>
+          Welcome back, {profile?.first_name || user?.email?.split('@')[0] || 'Customer'}!{' '}
+          <span aria-label="Welcome" style={{ display: 'inline-block', filter: 'grayscale(1) brightness(0) invert(1)', lineHeight: 1 }}>
+            👋
+          </span>
+        </h2>
       </GlassCard>
 
       {/* Dashboard CTA cards */}
@@ -110,7 +111,7 @@ export function OverviewPage() {
                 <div className="cta-sub">View and edit your personal details</div>
               </div>
             </div>
-            <a href="/dashboard/profile" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Profile</a>
+            <Link to="/dashboard/profile" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Profile</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -122,7 +123,7 @@ export function OverviewPage() {
                 <div className="cta-sub">Manage your saved addresses</div>
               </div>
             </div>
-            <a href="/dashboard/addresses" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Addresses</a>
+            <Link to="/dashboard/addresses" className="btn btn-ghost" style={{ marginTop: 8 }}>Open Addresses</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -134,7 +135,7 @@ export function OverviewPage() {
                 <div className="cta-sub">Create a new booking</div>
               </div>
             </div>
-            <a href="/dashboard/book" className="btn btn-primary" style={{ marginTop: 8 }}>Book Now</a>
+            <Link to="/dashboard/book" className="btn btn-primary" style={{ marginTop: 8 }}>Book Now</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -146,7 +147,7 @@ export function OverviewPage() {
                 <div className="cta-sub">See your booking history</div>
               </div>
             </div>
-            <a href="/dashboard/bookings" className="btn btn-ghost" style={{ marginTop: 8 }}>View Bookings</a>
+            <Link to="/dashboard/bookings" className="btn btn-ghost" style={{ marginTop: 8 }}>View Bookings</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -158,7 +159,7 @@ export function OverviewPage() {
                 <div className="cta-sub">View and manage payments</div>
               </div>
             </div>
-            <a href="/dashboard/payments" className="btn btn-ghost" style={{ marginTop: 8 }}>Payments</a>
+            <Link to="/dashboard/payments" className="btn btn-ghost" style={{ marginTop: 8 }}>Payments</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -170,7 +171,7 @@ export function OverviewPage() {
                 <div className="cta-sub">View invoices and receipts</div>
               </div>
             </div>
-            <a href="/dashboard/invoices" className="btn btn-ghost" style={{ marginTop: 8 }}>Invoices</a>
+            <Link to="/dashboard/invoices" className="btn btn-ghost" style={{ marginTop: 8 }}>Invoices</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -182,7 +183,7 @@ export function OverviewPage() {
                 <div className="cta-sub">Create tickets or contact support</div>
               </div>
             </div>
-            <a href="/dashboard/support" className="btn btn-ghost" style={{ marginTop: 8 }}>Support</a>
+            <Link to="/dashboard/support" className="btn btn-ghost" style={{ marginTop: 8 }}>Support</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -194,7 +195,7 @@ export function OverviewPage() {
                 <div className="cta-sub">App preferences & account settings</div>
               </div>
             </div>
-            <a href="/dashboard/settings" className="btn btn-ghost" style={{ marginTop: 8 }}>Settings</a>
+            <Link to="/dashboard/settings" className="btn btn-ghost" style={{ marginTop: 8 }}>Settings</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -206,7 +207,7 @@ export function OverviewPage() {
                 <div className="cta-sub">Security settings for your account</div>
               </div>
             </div>
-            <a href="/dashboard/security" className="btn btn-ghost" style={{ marginTop: 8 }}>Security</a>
+            <Link to="/dashboard/security" className="btn btn-ghost" style={{ marginTop: 8 }}>Security</Link>
           </GlassCard>
           <GlassCard className="cta-card" style={{ padding: 18 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -218,7 +219,7 @@ export function OverviewPage() {
                 <div className="cta-sub">View recent alerts and messages</div>
               </div>
             </div>
-            <a href="/dashboard/notifications" className="btn btn-ghost" style={{ marginTop: 8 }}>Notifications</a>
+            <Link to="/dashboard/notifications" className="btn btn-ghost" style={{ marginTop: 8 }}>Notifications</Link>
           </GlassCard>
         </div>
       </div>

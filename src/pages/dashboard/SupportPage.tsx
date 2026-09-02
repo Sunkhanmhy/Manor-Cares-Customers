@@ -212,7 +212,7 @@ export function SupportPage() {
         </div>
       ) : tickets.length === 0 ? (
         <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon={<Icon name="support" size={40} />} title="No support tickets" message="Need help? Create a ticket and our team will assist you." />
+          <EmptyState icon={<Icon name="support" size={40} />} title="No data available. Update your record, now!" message="Need help? Create a ticket and our team will assist you." />
         </GlassCard>
       ) : (
         <div className="card-grid">

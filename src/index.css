@@ -22,7 +22,6 @@
   --text-on-light: #14263b;
   --clr-deep-black: #050505;
 
-  /* Global icon sizing tokens */
   --icon-size-desktop: 22px;
   --icon-size-tablet: 20px;
   --icon-size-mobile: 18px;
@@ -34,7 +33,6 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* global font size token (desktop default = 16px) */
   --global-font-size: 16px;
 }
 
@@ -56,7 +54,6 @@ body {
   background-attachment: fixed;
 }
 
-/* Responsive adjustments for base font-size so UI scales on smaller devices */
 @media (max-width: 1200px) {
   :root { --global-font-size: 15px; }
 }
@@ -84,9 +81,6 @@ button {
   font-family: inherit;
 }
 
-/* ---------------------------------------------------------------- */
-/* Glassmorphism utility classes                                    */
-/* ---------------------------------------------------------------- */
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -113,7 +107,7 @@ button {
   border: none;
   border-radius: 12px;
   padding: 10px 16px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
@@ -170,7 +164,7 @@ button {
 }
 
 .field label {
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -178,12 +172,12 @@ button {
 .input,
 select.input,
 textarea.input {
-  background: rgba(255, 255, 255, 0.08);
+  background: #000000 !important;
   border: 1px solid var(--glass-border);
   border-radius: 10px;
   padding: 11px 14px;
-  color: var(--text);
-  font-size: 0.90625rem; /* 14.5px */
+  color: var(--clr-white);
+  font-size: 0.90625rem;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -197,7 +191,12 @@ textarea.input {
 select.input:focus,
 textarea.input:focus {
   border-color: var(--clr-blue);
-  background: rgba(255, 255, 255, 0.12);
+  background: #000000 !important;
+}
+
+select.input option {
+  background: #000000;
+  color: var(--clr-white);
 }
 
 .input-error {
@@ -206,14 +205,14 @@ textarea.input:focus {
 
 .error-text {
   color: #ffb4b4;
-  font-size: 0.78125rem; /* 12.5px */
+  font-size: 0.78125rem;
 }
 
 .checkbox-row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 0.84375rem; /* 13.5px */
+  font-size: 0.84375rem;
   color: var(--text-muted);
   text-align: left;
 }
@@ -228,7 +227,7 @@ textarea.input:focus {
   gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: capitalize;
@@ -258,6 +257,7 @@ textarea.input:focus {
   width: 8px;
   height: 8px;
 }
+
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.25);
@@ -357,6 +357,7 @@ svg.icon,
 i.fa {
   color: var(--clr-white) !important;
   fill: var(--clr-white) !important;
+  filter: brightness(0) invert(1) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -368,6 +369,7 @@ svg.icon {
   color: var(--clr-white) !important;
   fill: currentColor !important;
   stroke: currentColor !important;
+  filter: brightness(0) invert(1) !important;
 }
 
 /* Make SVG strokes and simple shapes appear bolder to match "bold" icon requirement */
@@ -450,10 +452,25 @@ svg.icon polygon {
   gap: 18px;
 }
 
+.dashboard-content .glass,
+.dashboard-content .glass-strong,
+.dashboard-content .table-clean,
+.dashboard-content .input,
+.dashboard-content select.input,
+.dashboard-content textarea.input {
+  background: rgba(0, 0, 0, 0.78) !important;
+}
+
+.dashboard-content .glass,
+.dashboard-content .glass-strong {
+  border: 1px solid var(--glass-border);
+}
+
 .table-clean {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.84375rem; /* 13.5px */
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .table-clean th {
@@ -466,12 +483,15 @@ svg.icon polygon {
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--glass-border);
   white-space: nowrap;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .table-clean td {
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   white-space: nowrap;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .table-clean tr:last-child td {

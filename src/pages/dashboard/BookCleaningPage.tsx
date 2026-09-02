@@ -1,323 +1,575 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
-import { formatCurrency } from '../../lib/format';
 import Icon from '../../components/Icon';
 import type { Address, CleaningService } from '../../types/database';
 
-const PROPERTY_TYPES: Array<{ value: 'apartment' | 'house' | 'office' | 'airbnb' | 'other'; label: string }> = [
-  { value: 'apartment', label: 'Apartment' },
-  { value: 'house', label: 'House' },
-  { value: 'office', label: 'Office' },
-  { value: 'airbnb', label: 'Airbnb / Short-let' },
-  { value: 'other', label: 'Other' },
-];
+type BookingFormMode = 'private' | 'public';
 
-const ROOM_RATE = 2000;
-const BATHROOM_RATE = 1500;
+type PrivatePropertyForm = {
+  customer_name: string;
+  phone: string;
+  email: string;
+  property_type: 'house' | 'apartment' | 'airbnb' | 'other';
+  service_name: string;
+  home_style: string;
+  bedrooms: number;
+  kitchens: number;
+  toilets: number;
+  living_rooms: number;
+  furniture_included: boolean;
+  outdoor_cleaning: boolean;
+  indoor_cleaning: boolean;
+  billing_cycle: 'one-time' | 'monthly';
+  booking_date: string;
+  booking_time: string;
+  notes: string;
+  address_line: string;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+};
+
+type PublicPropertyForm = {
+  customer_name: string;
+  phone: string;
+  email: string;
+  property_type: 'office' | 'other';
+  property_category: string;
+  building_name: string;
+  floors: number;
+  rooms: number;
+  kitchens: number;
+  toilets: number;
+  parking_area: boolean;
+  outdoor_cleaning: boolean;
+  indoor_cleaning: boolean;
+  furniture_included: boolean;
+  billing_cycle: 'one-time' | 'monthly';
+  booking_date: string;
+  booking_time: string;
+  notes: string;
+  address_line: string;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+};
+
+const BASE_PRIVATE_FORM: PrivatePropertyForm = {
+  customer_name: '',
+  phone: '',
+  email: '',
+  property_type: 'house',
+  service_name: 'Private Home Cleaning',
+  home_style: 'Detached home',
+  bedrooms: 3,
+  kitchens: 1,
+  toilets: 2,
+  living_rooms: 1,
+  furniture_included: true,
+  outdoor_cleaning: true,
+  indoor_cleaning: true,
+  billing_cycle: 'monthly',
+  booking_date: '',
+  booking_time: '09:00',
+  notes: '',
+  address_line: '',
+  city: '',
+  state: '',
+  country: '',
+  postal_code: '',
+};
+
+const BASE_PUBLIC_FORM: PublicPropertyForm = {
+  customer_name: '',
+  phone: '',
+  email: '',
+  property_type: 'office',
+  property_category: 'Corporate office',
+  building_name: '',
+  floors: 2,
+  rooms: 10,
+  kitchens: 1,
+  toilets: 4,
+  parking_area: true,
+  outdoor_cleaning: true,
+  indoor_cleaning: true,
+  furniture_included: true,
+  billing_cycle: 'monthly',
+  booking_date: '',
+  booking_time: '09:00',
+  notes: '',
+  address_line: '',
+  city: '',
+  state: '',
+  country: '',
+  postal_code: '',
+};
 
 export function BookCleaningPage() {
-  const { customerProfile } = useAuth();
+  const { profile, user, customerProfile } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [services, setServices] = useState<CleaningService[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [loadingOptions, setLoadingOptions] = useState(true);
-
-  const [serviceId, setServiceId] = useState<number | null>(null);
-  const [propertyType, setPropertyType] = useState<(typeof PROPERTY_TYPES)[number]['value']>('apartment');
-  const [addressId, setAddressId] = useState<number | 'new'>('new');
-  const [customAddress, setCustomAddress] = useState('');
-  const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('');
-  const [rooms, setRooms] = useState(1);
-  const [bathrooms, setBathrooms] = useState(1);
-  const [additionalServiceIds, setAdditionalServiceIds] = useState<number[]>([]);
-  const [instructions, setInstructions] = useState('');
-  const [step, setStep] = useState<'form' | 'summary'>('form');
-  const [submitting, setSubmitting] = useState(false);
-  const [confirmedNumber, setConfirmedNumber] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [privateForm, setPrivateForm] = useState<PrivatePropertyForm>(BASE_PRIVATE_FORM);
+  const [publicForm, setPublicForm] = useState<PublicPropertyForm>(BASE_PUBLIC_FORM);
+  const [submitting, setSubmitting] = useState<BookingFormMode | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     async function load() {
-      const [servicesRes, addressesRes] = await Promise.all([
-        supabase.from('cleaning_services').select('*').eq('is_active', true).order('display_order'),
-        customerProfile
-          ? supabase.from('addresses').select('*').eq('profile_id', customerProfile.profile_id).order('is_default', { ascending: false })
-          : Promise.resolve({ data: [] }),
+      const profileId = profile?.id;
+      const [addressRes, serviceRes] = await Promise.all([
+        profileId
+          ? supabase.from('addresses').select('*').eq('profile_id', profileId).order('is_default', { ascending: false }).order('created_at', { ascending: false })
+          : Promise.resolve({ data: [] as Address[] }),
+        supabase.from('cleaning_services').select('*').eq('is_active', true).order('display_order', { ascending: true }),
       ]);
-      const svc = (servicesRes.data as CleaningService[]) ?? [];
-      setServices(svc);
-      if (svc.length) setServiceId(svc[0].id);
-      const addr = (addressesRes.data as Address[]) ?? [];
-      setAddresses(addr);
-      if (addr.length) setAddressId(addr.find((a) => a.is_default)?.id ?? addr[0].id);
-      setLoadingOptions(false);
+
+      if (!active) return;
+
+      const addressList = ((addressRes as { data?: Array<{ is_default?: boolean; address_line?: string | null; city?: string | null; state?: string | null; country?: string | null; postal_code?: string | null }> }).data ?? []);
+      const primaryAddress = addressList.find((address) => address.is_default) ?? addressList[0];
+      const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
+      const defaultAddressLine = primaryAddress?.address_line ?? profile?.address_line ?? '';
+      const defaultCity = primaryAddress?.city ?? profile?.city ?? '';
+      const defaultState = primaryAddress?.state ?? profile?.state ?? '';
+      const defaultCountry = primaryAddress?.country ?? profile?.country ?? 'Nigeria';
+      const defaultPostalCode = primaryAddress?.postal_code ?? profile?.postal_code ?? '';
+
+      const autoFill = {
+        customer_name: fullName || user?.email?.split('@')[0] || 'Customer',
+        phone: profile?.phone ?? '',
+        email: user?.email ?? profile?.email ?? '',
+        address_line: defaultAddressLine,
+        city: defaultCity,
+        state: defaultState,
+        country: defaultCountry,
+        postal_code: defaultPostalCode,
+      };
+
+      setServices((serviceRes.data as CleaningService[]) ?? []);
+      setPrivateForm((prev) => ({ ...prev, ...autoFill }));
+      setPublicForm((prev) => ({ ...prev, ...autoFill }));
+      setLoading(false);
     }
+
     load();
-  }, [customerProfile]);
 
-  const selectedService = services.find((s) => s.id === serviceId);
-  const additionalServices = services.filter((s) => additionalServiceIds.includes(s.id));
+    return () => {
+      active = false;
+    };
+  }, [profile, user]);
 
-  const estimatedPrice = useMemo(() => {
-    const base = selectedService?.base_price ?? 0;
-    const roomsCost = Math.max(0, rooms - 1) * ROOM_RATE;
-    const bathroomsCost = Math.max(0, bathrooms - 1) * BATHROOM_RATE;
-    const addOns = additionalServices.reduce((sum, s) => sum + Number(s.base_price), 0);
-    return base + roomsCost + bathroomsCost + addOns;
-  }, [selectedService, rooms, bathrooms, additionalServices]);
+  const formatSummaryText = (mode: BookingFormMode, form: PrivatePropertyForm | PublicPropertyForm) => {
+    if (mode === 'private') {
+      const privateFormData = form as PrivatePropertyForm;
+      return [
+        `Private property cleaning`,
+        `Home style: ${privateFormData.home_style}`,
+        `Bedrooms: ${privateFormData.bedrooms}`,
+        `Kitchens: ${privateFormData.kitchens}`,
+        `Toilets: ${privateFormData.toilets}`,
+        `Living rooms: ${privateFormData.living_rooms}`,
+        `Furniture included: ${privateFormData.furniture_included ? 'Yes' : 'No'}`,
+        `Outdoor cleaning: ${privateFormData.outdoor_cleaning ? 'Yes' : 'No'}`,
+        `Indoor cleaning: ${privateFormData.indoor_cleaning ? 'Yes' : 'No'}`,
+        `Billing cycle: ${privateFormData.billing_cycle}`,
+        privateFormData.notes || 'No special instructions',
+      ].join(' | ');
+    }
 
-  const resolvedAddress = addressId === 'new' ? customAddress : addresses.find((a) => a.id === addressId)?.address_line ?? '';
+    const publicFormData = form as PublicPropertyForm;
+    return [
+      `Public property cleaning`,
+      `Category: ${publicFormData.property_category}`,
+      `Building: ${publicFormData.building_name || 'Not specified'}`,
+      `Floors: ${publicFormData.floors}`,
+      `Rooms: ${publicFormData.rooms}`,
+      `Kitchens: ${publicFormData.kitchens}`,
+      `Toilets: ${publicFormData.toilets}`,
+      `Parking area: ${publicFormData.parking_area ? 'Yes' : 'No'}`,
+      `Outdoor cleaning: ${publicFormData.outdoor_cleaning ? 'Yes' : 'No'}`,
+      `Indoor cleaning: ${publicFormData.indoor_cleaning ? 'Yes' : 'No'}`,
+      `Billing cycle: ${publicFormData.billing_cycle}`,
+      publicFormData.notes || 'No special instructions',
+    ].join(' | ');
+  };
 
-  function toggleAdditionalService(id: number) {
-    setAdditionalServiceIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
-
-  function validateForm(): string | null {
-    if (!serviceId) return 'Please select a cleaning service.';
-    if (!bookingDate) return 'Please choose a date.';
-    if (!bookingTime) return 'Please choose a time.';
-    if (!resolvedAddress.trim()) return 'Please provide a service address.';
-    return null;
-  }
-
-  function handleContinue(e: React.FormEvent) {
-    e.preventDefault();
-    const error = validateForm();
-    if (error) {
-      toast.error(error);
+  async function submitBooking(mode: BookingFormMode) {
+    if (!customerProfile) {
+      toast.error('Your customer profile is not ready yet. Please refresh your session and try again.');
       return;
     }
-    setStep('summary');
-  }
 
-  async function handleConfirm() {
-    if (!customerProfile || submitting) return;
-    setSubmitting(true);
+    const privateFormData = privateForm;
+    const publicFormData = publicForm;
+    const form = mode === 'private' ? privateFormData : publicFormData;
+    const selectedService = services.find((service) => {
+      const name = service.name.toLowerCase();
+      return mode === 'private' ? name.includes('private') || name.includes('home') : name.includes('public') || name.includes('commercial') || name.includes('office');
+    }) ?? services[0];
+
+    if (!selectedService) {
+      toast.error('No cleaning service is available in the catalog yet.');
+      return;
+    }
+
+    if (!form.booking_date || !form.booking_time) {
+      toast.error('Please select a service date and time before submitting.');
+      return;
+    }
+
+    setSubmitting(mode);
+
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-          customer_id: customerProfile.id,
-          service_id: serviceId,
-          booking_date: bookingDate,
-          booking_time: bookingTime,
-          property_type: propertyType,
-          property_address: resolvedAddress,
-          number_of_rooms: rooms,
-          number_of_bathrooms: bathrooms,
-          additional_services: additionalServices.map((s) => s.name),
-          special_instructions: instructions.trim() || null,
-          estimated_price: estimatedPrice,
-        })
-        .select('booking_number')
-        .single();
+      const propertyAddress = [form.address_line, form.city, form.state, form.country, form.postal_code].filter(Boolean).join(', ');
+
+      const bookingPayload: any = mode === 'private'
+        ? {
+            customer_id: customerProfile.id,
+            service_id: selectedService.id,
+            booking_date: privateFormData.booking_date,
+            booking_time: privateFormData.booking_time,
+            property_type: privateFormData.property_type,
+            property_address: propertyAddress || 'Address not provided',
+            number_of_rooms: Number(privateFormData.bedrooms || 0),
+            number_of_bathrooms: Number(privateFormData.toilets || 1),
+            additional_services: [
+              privateFormData.home_style || 'Home cleaning',
+              privateFormData.outdoor_cleaning ? 'Outdoor cleaning' : null,
+              privateFormData.indoor_cleaning ? 'Indoor cleaning' : null,
+              privateFormData.furniture_included ? 'Furniture care' : null,
+            ].filter(Boolean) as string[],
+            special_instructions: formatSummaryText('private', privateFormData),
+            estimated_price: selectedService.base_price,
+            payment_status: 'unpaid',
+            booking_status: 'pending',
+          }
+        : {
+            customer_id: customerProfile.id,
+            service_id: selectedService.id,
+            booking_date: publicFormData.booking_date,
+            booking_time: publicFormData.booking_time,
+            property_type: publicFormData.property_type,
+            property_address: propertyAddress || 'Address not provided',
+            number_of_rooms: Number(publicFormData.rooms || 0),
+            number_of_bathrooms: Number(publicFormData.toilets || 1),
+            additional_services: [
+              publicFormData.property_category || 'Public property cleaning',
+              publicFormData.outdoor_cleaning ? 'Outdoor cleaning' : null,
+              publicFormData.indoor_cleaning ? 'Indoor cleaning' : null,
+              publicFormData.furniture_included ? 'Furniture care' : null,
+              publicFormData.parking_area ? 'Parking area cleaning' : null,
+            ].filter(Boolean) as string[],
+            special_instructions: formatSummaryText('public', publicFormData),
+            estimated_price: selectedService.base_price,
+            payment_status: 'unpaid',
+            booking_status: 'pending',
+          };
+
+      const { error } = await supabase.from('bookings').insert(bookingPayload as any);
 
       if (error) throw error;
 
       await supabase.from('notifications').insert({
-        profile_id: customerProfile.profile_id,
+        profile_id: profile!.id,
         type: 'booking_confirmed',
-        title: 'Booking Received',
-        message: `Your booking ${data.booking_number} has been received and is pending confirmation.`,
+        title: mode === 'private' ? 'Private cleaning request received' : 'Public cleaning request received',
+        message: `${form.customer_name}, your ${mode} cleaning request has been submitted successfully.`,
       });
 
-      setConfirmedNumber(data.booking_number);
-    } catch {
-      toast.error('We could not create your booking. Please try again.');
+      toast.success(`${mode === 'private' ? 'Private' : 'Public'} cleaning request submitted successfully.`);
+      setPrivateForm((prev) => ({ ...BASE_PRIVATE_FORM, ...prev, customer_name: prev.customer_name, phone: prev.phone, email: prev.email, address_line: prev.address_line, city: prev.city, state: prev.state, country: prev.country, postal_code: prev.postal_code }));
+      setPublicForm((prev) => ({ ...BASE_PUBLIC_FORM, ...prev, customer_name: prev.customer_name, phone: prev.phone, email: prev.email, address_line: prev.address_line, city: prev.city, state: prev.state, country: prev.country, postal_code: prev.postal_code }));
+    } catch (error) {
+      console.error(error);
+      toast.error('We could not submit your cleaning request. Please try again.');
     } finally {
-      setSubmitting(false);
+      setSubmitting(null);
     }
   }
 
-  if (loadingOptions) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
-        <Spinner size={30} />
-      </div>
-    );
-  }
-
-  if (confirmedNumber) {
-    return (
-      <GlassCard style={{ padding: 40, maxWidth: 480, margin: '40px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: 12 }}><Icon name="check" size={48} /></div>
-        <h2 style={{ fontSize: '1.25rem', marginBottom: 8 }}>Booking Confirmed!</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 6 }}>Your booking reference is</p>
-        <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)', marginBottom: 24 }}>{confirmedNumber}</p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/dashboard/bookings')}>
-            View My Bookings
-          </button>
-          <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </button>
-        </div>
-      </GlassCard>
-    );
-  }
-
-  if (step === 'summary') {
-    return (
-      <GlassCard style={{ padding: 28, maxWidth: 560 }}>
-        <h2 style={{ fontSize: '1.1875rem', marginBottom: 18 }}>Booking Summary</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.84375rem', marginBottom: 22 }}>
-          <SummaryRow label="Service" value={selectedService?.name ?? '—'} />
-          <SummaryRow label="Property Type" value={PROPERTY_TYPES.find((p) => p.value === propertyType)?.label ?? ''} />
-          <SummaryRow label="Date & Time" value={`${bookingDate} at ${bookingTime}`} />
-          <SummaryRow label="Address" value={resolvedAddress} />
-          <SummaryRow label="Bedrooms / Bathrooms" value={`${rooms} / ${bathrooms}`} />
-          {additionalServices.length > 0 && (
-            <SummaryRow label="Additional Services" value={additionalServices.map((s) => s.name).join(', ')} />
-          )}
-          {instructions && <SummaryRow label="Special Instructions" value={instructions} />}
-          <div style={{ borderTop: '1px solid var(--glass-border)', margin: '8px 0' }} />
-          <SummaryRow label="Estimated Price" value={formatCurrency(estimatedPrice)} bold />
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-success" onClick={handleConfirm} disabled={submitting}>
-            {submitting ? <Spinner size={16} /> : 'Confirm Booking'}
-          </button>
-          <button className="btn btn-ghost" onClick={() => setStep('form')} disabled={submitting}>
-            Back to Edit
-          </button>
-        </div>
-      </GlassCard>
-    );
-  }
+  const summaryStats = useMemo(() => {
+    return [
+      { label: 'Address', value: privateForm.address_line || publicForm.address_line || 'Not set' },
+      { label: 'Primary contact', value: privateForm.customer_name || publicForm.customer_name || 'Customer' },
+      { label: 'Service plan', value: privateForm.billing_cycle || publicForm.billing_cycle },
+    ];
+  }, [privateForm, publicForm]);
 
   return (
-      <GlassCard style={{ padding: 28, maxWidth: 640 }}>
-        <h2 style={{ fontSize: '1.1875rem', marginBottom: 20 }}>Book a Cleaning Service</h2>
-      <form onSubmit={handleContinue} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div className="field">
-          <label>Cleaning Service</label>
-          <select className="input" value={serviceId ?? ''} onChange={(e) => setServiceId(Number(e.target.value))}>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} — {formatCurrency(s.base_price)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div className="field">
-            <label>Property Type</label>
-            <select className="input" value={propertyType} onChange={(e) => setPropertyType(e.target.value as typeof propertyType)}>
-              {PROPERTY_TYPES.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>Address</label>
-            <select
-              className="input"
-              value={addressId}
-              onChange={(e) => setAddressId(e.target.value === 'new' ? 'new' : Number(e.target.value))}
-            >
-              {addresses.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.address_line}, {a.city}
-                </option>
-              ))}
-              <option value="new">Enter a new address…</option>
-            </select>
-          </div>
-        </div>
-
-        {addressId === 'new' && (
-          <div className="field">
-            <label>New Address</label>
-            <input className="input" value={customAddress} onChange={(e) => setCustomAddress(e.target.value)} />
-          </div>
-        )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div className="field">
-            <label>Date</label>
-            <input
-              type="date"
-              className="input"
-              value={bookingDate}
-              min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setBookingDate(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label>Time</label>
-            <input type="time" className="input" value={bookingTime} onChange={(e) => setBookingTime(e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Number of Bedrooms</label>
-            <input
-              type="number"
-              min={0}
-              className="input"
-              value={rooms}
-              onChange={(e) => setRooms(Math.max(0, Number(e.target.value)))}
-            />
-          </div>
-          <div className="field">
-            <label>Number of Bathrooms</label>
-            <input
-              type="number"
-              min={0}
-              className="input"
-              value={bathrooms}
-              onChange={(e) => setBathrooms(Math.max(0, Number(e.target.value)))}
-            />
-          </div>
-        </div>
-
-        {services.length > 1 && (
-          <div className="field">
-            <label>Additional Services</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {services
-                .filter((s) => s.id !== serviceId)
-                .map((s) => (
-                  <label key={s.id} className="checkbox-row">
-                    <input type="checkbox" checked={additionalServiceIds.includes(s.id)} onChange={() => toggleAdditionalService(s.id)} />
-                    {s.name} (+{formatCurrency(s.base_price)})
-                  </label>
-                ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <GlassCard style={{ padding: 18, background: '#000000' }} strong>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="clean" size={22} />
+            <div>
+              <h3 style={{ fontSize: '1.05rem' }}>Cleaning Service Request</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: 2 }}>Authenticated using your account details and saved address information.</p>
             </div>
           </div>
-        )}
-
-        <div className="field">
-          <label>Special Cleaning Requirements</label>
-          <textarea className="input" rows={3} value={instructions} onChange={(e) => setInstructions(e.target.value)} />
+          <div className="badge badge-blue">{loading ? 'Syncing profile' : 'Ready'}</div>
         </div>
+      </GlassCard>
 
-        <GlassCard style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.84375rem', color: 'var(--text-muted)' }}>Estimated Price</span>
-          <strong style={{ fontSize: '1.125rem', color: 'var(--clr-green)' }}>{formatCurrency(estimatedPrice)}</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        <GlassCard style={{ padding: 20, background: '#000000' }} strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Icon name="home" size={18} />
+            <h3 style={{ fontSize: '1rem' }}>Private Property</h3>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submitBooking('private');
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label className="field">
+                <span>Customer Name</span>
+                <input className="input" value={privateForm.customer_name} onChange={(e) => setPrivateForm({ ...privateForm, customer_name: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Phone</span>
+                <input className="input" value={privateForm.phone} onChange={(e) => setPrivateForm({ ...privateForm, phone: e.target.value })} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Email</span>
+                <input className="input" type="email" value={privateForm.email} onChange={(e) => setPrivateForm({ ...privateForm, email: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Home / Property Type</span>
+                <select className="input" value={privateForm.property_type} onChange={(e) => setPrivateForm({ ...privateForm, property_type: e.target.value as PrivatePropertyForm['property_type'] })}>
+                  <option value="house">House</option>
+                  <option value="apartment">Apartment</option>
+                  <option value="airbnb">Airbnb / Short-let</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Property Style</span>
+                <input className="input" value={privateForm.home_style} onChange={(e) => setPrivateForm({ ...privateForm, home_style: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Bedrooms</span>
+                <input type="number" min={0} className="input" value={privateForm.bedrooms} onChange={(e) => setPrivateForm({ ...privateForm, bedrooms: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Kitchens</span>
+                <input type="number" min={0} className="input" value={privateForm.kitchens} onChange={(e) => setPrivateForm({ ...privateForm, kitchens: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Toilets</span>
+                <input type="number" min={0} className="input" value={privateForm.toilets} onChange={(e) => setPrivateForm({ ...privateForm, toilets: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Living Rooms</span>
+                <input type="number" min={0} className="input" value={privateForm.living_rooms} onChange={(e) => setPrivateForm({ ...privateForm, living_rooms: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Service Plan</span>
+                <select className="input" value={privateForm.billing_cycle} onChange={(e) => setPrivateForm({ ...privateForm, billing_cycle: e.target.value as PrivatePropertyForm['billing_cycle'] })}>
+                  <option value="one-time">One-time</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Preferred Date</span>
+                <input type="date" className="input" value={privateForm.booking_date} onChange={(e) => setPrivateForm({ ...privateForm, booking_date: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Preferred Time</span>
+                <input type="time" className="input" value={privateForm.booking_time} onChange={(e) => setPrivateForm({ ...privateForm, booking_time: e.target.value })} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Service Address</span>
+                <input className="input" value={privateForm.address_line} onChange={(e) => setPrivateForm({ ...privateForm, address_line: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>City</span>
+                <input className="input" value={privateForm.city} onChange={(e) => setPrivateForm({ ...privateForm, city: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>State</span>
+                <input className="input" value={privateForm.state} onChange={(e) => setPrivateForm({ ...privateForm, state: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Country</span>
+                <input className="input" value={privateForm.country} onChange={(e) => setPrivateForm({ ...privateForm, country: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Postal Code</span>
+                <input className="input" value={privateForm.postal_code} onChange={(e) => setPrivateForm({ ...privateForm, postal_code: e.target.value })} />
+              </label>
+
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={privateForm.furniture_included} onChange={(e) => setPrivateForm({ ...privateForm, furniture_included: e.target.checked })} />
+                Includes furniture and interior item care
+              </label>
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={privateForm.outdoor_cleaning} onChange={(e) => setPrivateForm({ ...privateForm, outdoor_cleaning: e.target.checked })} />
+                Include outdoor cleaning and compound area cleaning
+              </label>
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={privateForm.indoor_cleaning} onChange={(e) => setPrivateForm({ ...privateForm, indoor_cleaning: e.target.checked })} />
+                Include indoor cleaning and routine room maintenance
+              </label>
+
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Service Notes</span>
+                <textarea className="input" rows={3} value={privateForm.notes} onChange={(e) => setPrivateForm({ ...privateForm, notes: e.target.value })} />
+              </label>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading || submitting === 'private'}>
+              {submitting === 'private' ? <Spinner size={16} /> : 'Submit Private Request'}
+            </button>
+          </form>
         </GlassCard>
 
-        <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
-          Review Booking
-        </button>
-      </form>
-    </GlassCard>
-  );
-}
+        <GlassCard style={{ padding: 20, background: '#000000' }} strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Icon name="building" size={18} />
+            <h3 style={{ fontSize: '1rem' }}>Public Property</h3>
+          </div>
 
-function SummaryRow({ label, value, bold = false }: { label: string; value: string; bold?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
-      <span style={{ fontWeight: bold ? 700 : 500, textAlign: 'right' }}>{value}</span>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submitBooking('public');
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label className="field">
+                <span>Customer Name</span>
+                <input className="input" value={publicForm.customer_name} onChange={(e) => setPublicForm({ ...publicForm, customer_name: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Phone</span>
+                <input className="input" value={publicForm.phone} onChange={(e) => setPublicForm({ ...publicForm, phone: e.target.value })} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Email</span>
+                <input className="input" type="email" value={publicForm.email} onChange={(e) => setPublicForm({ ...publicForm, email: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Building Category</span>
+                <select className="input" value={publicForm.property_type} onChange={(e) => setPublicForm({ ...publicForm, property_type: e.target.value as PublicPropertyForm['property_type'] })}>
+                  <option value="office">Corporate / Office</option>
+                  <option value="other">Government / Individual / Other</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Property Category</span>
+                <input className="input" value={publicForm.property_category} onChange={(e) => setPublicForm({ ...publicForm, property_category: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Building / Estate Name</span>
+                <input className="input" value={publicForm.building_name} onChange={(e) => setPublicForm({ ...publicForm, building_name: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Floors</span>
+                <input type="number" min={0} className="input" value={publicForm.floors} onChange={(e) => setPublicForm({ ...publicForm, floors: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Rooms</span>
+                <input type="number" min={0} className="input" value={publicForm.rooms} onChange={(e) => setPublicForm({ ...publicForm, rooms: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Kitchens</span>
+                <input type="number" min={0} className="input" value={publicForm.kitchens} onChange={(e) => setPublicForm({ ...publicForm, kitchens: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Toilets</span>
+                <input type="number" min={0} className="input" value={publicForm.toilets} onChange={(e) => setPublicForm({ ...publicForm, toilets: Number(e.target.value || 0) })} />
+              </label>
+              <label className="field">
+                <span>Service Plan</span>
+                <select className="input" value={publicForm.billing_cycle} onChange={(e) => setPublicForm({ ...publicForm, billing_cycle: e.target.value as PublicPropertyForm['billing_cycle'] })}>
+                  <option value="one-time">One-time</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Preferred Date</span>
+                <input type="date" className="input" value={publicForm.booking_date} onChange={(e) => setPublicForm({ ...publicForm, booking_date: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Preferred Time</span>
+                <input type="time" className="input" value={publicForm.booking_time} onChange={(e) => setPublicForm({ ...publicForm, booking_time: e.target.value })} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Service Address</span>
+                <input className="input" value={publicForm.address_line} onChange={(e) => setPublicForm({ ...publicForm, address_line: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>City</span>
+                <input className="input" value={publicForm.city} onChange={(e) => setPublicForm({ ...publicForm, city: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>State</span>
+                <input className="input" value={publicForm.state} onChange={(e) => setPublicForm({ ...publicForm, state: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Country</span>
+                <input className="input" value={publicForm.country} onChange={(e) => setPublicForm({ ...publicForm, country: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Postal Code</span>
+                <input className="input" value={publicForm.postal_code} onChange={(e) => setPublicForm({ ...publicForm, postal_code: e.target.value })} />
+              </label>
+
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={publicForm.parking_area} onChange={(e) => setPublicForm({ ...publicForm, parking_area: e.target.checked })} />
+                Includes parking area and exterior cleaning
+              </label>
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={publicForm.furniture_included} onChange={(e) => setPublicForm({ ...publicForm, furniture_included: e.target.checked })} />
+                Includes furniture and office setup care
+              </label>
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={publicForm.outdoor_cleaning} onChange={(e) => setPublicForm({ ...publicForm, outdoor_cleaning: e.target.checked })} />
+                Include outdoor and perimeter cleaning
+              </label>
+              <label className="checkbox-row" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={publicForm.indoor_cleaning} onChange={(e) => setPublicForm({ ...publicForm, indoor_cleaning: e.target.checked })} />
+                Include indoor cleaning and shared workspace cleaning
+              </label>
+
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Additional Notes</span>
+                <textarea className="input" rows={3} value={publicForm.notes} onChange={(e) => setPublicForm({ ...publicForm, notes: e.target.value })} />
+              </label>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading || submitting === 'public'}>
+              {submitting === 'public' ? <Spinner size={16} /> : 'Submit Public Request'}
+            </button>
+          </form>
+        </GlassCard>
+      </div>
+
+      <GlassCard style={{ padding: 18, background: '#000000' }} strong>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+          {summaryStats.map((item) => (
+            <div key={item.label} style={{ padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.71875rem', marginBottom: 4 }}>{item.label}</div>
+              <div style={{ fontWeight: 600, fontSize: '0.84375rem' }}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
     </div>
   );
 }
