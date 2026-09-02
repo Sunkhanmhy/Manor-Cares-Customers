@@ -48,34 +48,34 @@ export function PaymentsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div className="stat-grid">
         <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8 }}>Total Paid</p>
-          <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(totalPaid)}</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Paid</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(totalPaid)}</p>
         </GlassCard>
         <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8 }}>Pending Payments</p>
-          <p style={{ fontSize: 22, fontWeight: 700 }}>{formatCurrency(pending)}</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Pending Payments</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{formatCurrency(pending)}</p>
         </GlassCard>
         <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8 }}>Total Transactions</p>
-          <p style={{ fontSize: 22, fontWeight: 700 }}>{payments.length}</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Transactions</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{payments.length}</p>
         </GlassCard>
       </div>
 
       <div>
-        <h3 style={{ fontSize: 18, marginBottom: 8 }}>Price Plans</h3>
+        <h3 style={{ fontSize: '1.125rem', marginBottom: 8 }}>Price Plans</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
           {plans.map((p) => (
             <GlassCard key={p.id} style={{ padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700 }}>{p.name}</div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{p.currency} {p.price.toLocaleString()}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700 }}>{p.name}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{p.currency} {p.price.toLocaleString()}</div>
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(Number(p.price), p.currency)}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(Number(p.price), p.currency)}</div>
               </div>
               <ul style={{ marginTop: 10, paddingLeft: 18 }}>
                 {p.features.map((f, i) => (
-                  <li key={i} style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 6 }}>{f}</li>
+                  <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 6 }}>{f}</li>
                 ))}
               </ul>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -88,8 +88,8 @@ export function PaymentsPage() {
       </div>
 
       <GlassCard style={{ padding: 18, marginTop: 8 }}>
-        <h3 style={{ fontSize: 16, marginBottom: 8 }}>Public Property Price Enquiry</h3>
-        <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 10 }}>We'll auto-fill your details below.</p>
+        <h3 style={{ fontSize: '1rem', marginBottom: 8 }}>Public Property Price Enquiry</h3>
+        <p style={{ fontSize: '0.84375rem', color: 'var(--text-muted)', marginBottom: 10 }}>We'll auto-fill your details below.</p>
         <form onSubmit={async (e) => { e.preventDefault();
           await supabase.from('price_enquiries').insert({
             customer_id: customerProfile?.id ?? null,

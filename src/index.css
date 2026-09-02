@@ -34,8 +34,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* global font size token, adjustable via Settings */
-  --global-font-size: 14px;
+  /* global font size token (desktop default = 16px) */
+  --global-font-size: 16px;
 }
 
 * {
@@ -54,6 +54,14 @@ body {
     radial-gradient(circle at 50% 100%, rgba(13, 60, 107, 0.6), transparent 55%),
     linear-gradient(160deg, var(--clr-blue-dark) 0%, #081c30 55%, #071a1a 100%);
   background-attachment: fixed;
+}
+
+/* Responsive adjustments for base font-size so UI scales on smaller devices */
+@media (max-width: 1200px) {
+  :root { --global-font-size: 15px; }
+}
+@media (max-width: 768px) {
+  :root { --global-font-size: 14px; }
 }
 
 #root {
@@ -104,8 +112,8 @@ button {
   gap: 8px;
   border: none;
   border-radius: 12px;
-  padding: 12px 20px;
-  font-size: 15px;
+  padding: 10px 16px;
+  font-size: 0.8125rem; /* 13px */
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
@@ -161,7 +169,7 @@ button {
 }
 
 .field label {
-  font-size: 13px;
+  font-size: 0.8125rem; /* 13px */
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -174,7 +182,7 @@ textarea.input {
   border-radius: 10px;
   padding: 11px 14px;
   color: var(--text);
-  font-size: 14.5px;
+  font-size: 0.90625rem; /* 14.5px */
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -197,14 +205,14 @@ textarea.input:focus {
 
 .error-text {
   color: #ffb4b4;
-  font-size: 12.5px;
+  font-size: 0.78125rem; /* 12.5px */
 }
 
 .checkbox-row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 0.84375rem; /* 13.5px */
   color: var(--text-muted);
   text-align: left;
 }
@@ -219,7 +227,7 @@ textarea.input:focus {
   gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem; /* 12px */
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: capitalize;
@@ -298,7 +306,7 @@ textarea.input:focus {
   border-radius: 10px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 15px; /* increased global sidebar text */
+  font-size: 13px;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
 }
@@ -353,11 +361,63 @@ textarea.input:focus {
 .fa-brands,
 .fa-icon,
 i.fa,
-svg.fa {
+svg.fa,
+svg.svg-inline--fa,
+.fa > svg,
+.fa svg,
+.fa * {
   color: var(--clr-white) !important;
+  fill: var(--clr-white) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.dashboard-shell .icon,
+.dashboard-shell .fa,
+.dashboard-shell .fas,
+.dashboard-shell .far,
+.dashboard-shell .fab,
+.dashboard-shell .fa-solid,
+.dashboard-shell .fa-regular,
+.dashboard-shell .fa-brands,
+.dashboard-shell .fa-icon,
+.dashboard-main .icon,
+.dashboard-main .fa,
+.dashboard-main .fas,
+.dashboard-main .far,
+.dashboard-main .fab,
+.dashboard-main .fa-solid,
+.dashboard-main .fa-regular,
+.dashboard-main .fa-brands,
+.dashboard-main .fa-icon,
+.sidebar .icon,
+.sidebar .fa,
+.sidebar .fas,
+.sidebar .far,
+.sidebar .fab,
+.sidebar .fa-solid,
+.sidebar .fa-regular,
+.sidebar .fa-brands,
+.sidebar .fa-icon,
+.topbar .icon,
+.topbar .fa,
+.topbar .fas,
+.topbar .far,
+.topbar .fab,
+.topbar .fa-solid,
+.topbar .fa-regular,
+.topbar .fa-brands,
+.topbar .fa-icon {
+  color: var(--clr-white) !important;
+  fill: var(--clr-white) !important;
+}
+
+/* Ensure standalone SVG icons inherit color and use currentColor for fill/stroke */
+svg.icon, svg.fa-icon {
+  color: var(--clr-white) !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
 .empty-icon { margin-bottom: 6px; }
@@ -390,8 +450,9 @@ svg.fa {
   gap: 8px;
 }
 
-.cta-card .cta-title { font-size: 15px; font-weight: 700; }
-.cta-card .cta-sub { color: var(--text-muted); font-size: 13px; }
+.cta-card .cta-title { font-size: 13px; font-weight: 700; }
+.cta-card .cta-title { font-size: 0.8125rem; font-weight: 700; }
+.cta-card .cta-sub { color: var(--text-muted); font-size: 0.75rem; }
 
 .hamburger-btn {
   display: none;
@@ -431,7 +492,7 @@ svg.fa {
 .table-clean {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 0.84375rem; /* 13.5px */
 }
 
 .table-clean th {
@@ -439,7 +500,7 @@ svg.fa {
   padding: 10px 14px;
   color: var(--text-muted);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem; /* 12px */
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--glass-border);

@@ -64,7 +64,7 @@ export function ProfilePage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 22,
+            fontSize: '1.375rem',
             fontWeight: 700,
             color: 'var(--clr-white)',
             flexShrink: 0,
@@ -73,15 +73,15 @@ export function ProfilePage() {
           {initials}
         </div>
         <div>
-          <h2 style={{ fontSize: 19 }}>
+          <h2 style={{ fontSize: '1.1875rem' }}>
             {profile.first_name} {profile.last_name}
           </h2>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{profile.email}</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>{profile.email}</p>
         </div>
       </GlassCard>
 
       <GlassCard style={{ padding: 24 }}>
-        <h3 style={{ fontSize: 16, marginBottom: 18 }}>Personal Information</h3>
+        <h3 style={{ fontSize: '1rem', marginBottom: 18 }}>Personal Information</h3>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div className="field">

@@ -73,7 +73,7 @@ export function BookingsPage() {
             <button
               key={f.value}
               className={`btn ${filter === f.value ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ padding: '7px 14px', fontSize: 12.5 }}
+              style={{ padding: '7px 14px', fontSize: '0.78125rem' }}
               onClick={() => setFilter(f.value)}
             >
               {f.label}
@@ -101,12 +101,12 @@ export function BookingsPage() {
             <GlassCard key={booking.id} style={{ padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <div>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{booking.booking_number}</p>
-                  <h3 style={{ fontSize: 15 }}>{booking.cleaning_services?.name}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{booking.booking_number}</p>
+                  <h3 style={{ fontSize: '0.9375rem' }}>{booking.cleaning_services?.name}</h3>
                 </div>
                 <StatusBadge status={booking.booking_status} kind="booking" />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 14 }}>
                 <span><span className="icon">📅</span> {formatDate(booking.booking_date)} · {formatTime(booking.booking_time)}</span>
                 <span><span className="icon">📍</span> {booking.property_address}</span>
                 <span><span className="icon">👥</span> {booking.assigned_staff ?? 'Not yet assigned'}</span>
@@ -117,7 +117,7 @@ export function BookingsPage() {
                 {['pending', 'confirmed'].includes(booking.booking_status) && (
                   <button
                     className="btn btn-danger"
-                    style={{ padding: '7px 12px', fontSize: 12.5, marginLeft: 'auto' }}
+                    style={{ padding: '7px 12px', fontSize: '0.78125rem', marginLeft: 'auto' }}
                     onClick={() => setCancelTarget(booking)}
                   >
                     Cancel
@@ -125,7 +125,7 @@ export function BookingsPage() {
                 )}
               </div>
               {booking.special_instructions && (
-                <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 10, fontStyle: 'italic' }}>
+                <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginTop: 10, fontStyle: 'italic' }}>
                   “{booking.special_instructions}”
                 </p>
               )}

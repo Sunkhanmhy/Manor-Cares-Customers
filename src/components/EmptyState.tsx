@@ -23,9 +23,9 @@ export function EmptyState({
         color: 'var(--text-muted)',
       }}
     >
-      <div className="icon empty-icon" style={{ fontSize: 40 }}>{icon}</div>
-      <h3 style={{ fontSize: 17 }}>{title}</h3>
-      {message && <p style={{ maxWidth: 380, fontSize: 13.5 }}>{message}</p>}
+      <div className="icon empty-icon" style={{ fontSize: '2.5rem' }}>{icon}</div>
+      <h3 style={{ fontSize: '1.0625rem' }}>{title}</h3>
+      {message && <p style={{ maxWidth: 380, fontSize: '0.84375rem' }}>{message}</p>}
       {action}
     </div>
   );

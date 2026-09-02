@@ -36,14 +36,14 @@ export function ForgotPasswordPage() {
     <div className="auth-shell" style={{ justifyContent: 'center' }}>
       <div className="auth-col">
         <GlassCard strong style={{ padding: 'clamp(24px, 4vw, 40px)', width: '100%', maxWidth: 440 }}>
-          <h2 style={{ fontSize: 24, marginBottom: 8 }}>Forgot Password?</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 24 }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: 8 }}>Forgot Password?</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
             Enter your account email and we&apos;ll send you a secure link to reset your password.
           </p>
 
           {sent ? (
             <div className="glass" style={{ padding: 16, borderLeft: '3px solid var(--clr-green)' }}>
-              <p style={{ fontSize: 13.5, marginBottom: 12 }}>
+              <p style={{ fontSize: '0.84375rem', marginBottom: 12 }}>
                 If an account exists for <strong>{email}</strong>, a recovery link has been sent. Please check your inbox.
               </p>
               <Link to="/" className="btn btn-ghost btn-block">
@@ -71,7 +71,7 @@ export function ForgotPasswordPage() {
                 {loading ? <Spinner size={16} /> : 'Send Recovery Link'}
               </button>
 
-              <Link to="/" style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+              <Link to="/" style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
                 Return to Sign In
               </Link>
             </form>

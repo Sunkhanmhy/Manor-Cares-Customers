@@ -76,8 +76,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               }`,
             }}
           >
-            <span className="icon" style={{ fontSize: 15 }}>{t.kind === 'success' ? '✅' : t.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
-            <span style={{ fontSize: 13.5, color: 'var(--text)' }}>{t.message}</span>
+            <span className="icon" style={{ fontSize: '0.9375rem' }}>{t.kind === 'success' ? '✅' : t.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
+            <span style={{ fontSize: '0.84375rem', color: 'var(--text)' }}>{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
               aria-label="Dismiss notification"
@@ -87,7 +87,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 border: 'none',
                 color: 'var(--text-muted)',
                 cursor: 'pointer',
-                fontSize: 16,
+                fontSize: '1rem',
               }}
             >
               ×

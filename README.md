@@ -287,4 +287,113 @@ npm run build
 
 If you want, I can now produce the exact CLI commands for your environment (replace <project-ref> and paste secrets). Tell me whether you prefer me to (A) produce the commands for you to run locally, or (B) that you will provide the `SUPABASE_SERVICE_ROLE_KEY` here so I can deploy from this environment (only do B if you trust this environment and want me to run the commands).
 
+## 7. Deploying this app on Railway (step-by-step)
+
+This app is a static React + Vite frontend that talks to a shared Supabase project (Auth + Postgres + Storage + Edge Functions). Railway will host the static frontend; Supabase hosts the backend. Follow these exact steps to publish to Railway and ensure sign-up, email verification, login, and dashboard access work.
+
+7.1 Prerequisites
+- A Railway account and access to Railway project(s).
+- GitHub repository connected to Railway for automatic deploys.
+- A Supabase project (shared with the Admin app) with the schema applied as described above.
+- SMTP settings configured in Supabase Auth (for email verification) or use Supabase's built-in email provider if available.
+
+7.2 Prepare the repo for production
+1. Ensure `supabase/schema.sql` has been applied to your Supabase project (see section 3.1).
+2. Confirm `/src/lib/supabaseClient.ts` uses only the anon/public key in client builds.
+3. Do NOT embed `service_role` or any other secrets in the frontend. Service-role keys belong to server/Edge Functions only.
+
+7.3 Railway: create project & connect repo
+1. Log into Railway and create a new project → Deploy from GitHub.
+2. Select this repository and the branch to deploy (e.g. `main`).
+3. Railway will ask Build Command and Publish Directory. Use:
+
+Build command: `npm install && npm run build`
+Publish directory: `dist`
+
+4. Under Railway Environment Variables, add the production values (see 7.4).
+
+7.4 Required environment variables (Railway)
+Set these in Railway's project Settings → Variables. Replace placeholders with your Supabase project values.
+
+- `VITE_SUPABASE_URL` = https://<project-ref>.supabase.co
+- `VITE_SUPABASE_ANON_KEY` = <your-anon-key>
+- `PUBLIC_SITE_URL` = https://<your-railway-domain> (use Railway subdomain or custom domain)
+
+Important: Do NOT add `SUPABASE_SERVICE_ROLE_KEY` to the frontend env; only set that in Supabase Edge Function secrets or a server-side environment.
+
+7.5 Configure Supabase Auth for production
+1. In Supabase → Authentication → Settings:
+  - Set **Site URL** to your production `PUBLIC_SITE_URL`.
+  - Add the Railway site URL to **Redirect URLs** and **Allowed Domains**.
+  - Enable Email Confirmations (if desired) and configure SMTP under **Settings → Email → SMTP** if you want to use your own mail provider (SendGrid, Mailgun, etc.).
+2. Test a sign-up on a staging domain to verify the verification email is received. If emails do not arrive, configure SMTP properly and test again.
+
+7.6 Storage & file uploads (ID documents and avatars)
+1. Create two buckets in Supabase Storage:
+  - `avatars` (public or private depending on your UX)
+  - `id-docs` (RECOMMENDED: private)
+2. If `id-docs` is private, implement signed URL downloads in the frontend or a small Edge Function to return signed URLs. The profile upload flow in this repo may need adjustment: private buckets must use `createSignedUrl()` for reads.
+
+7.7 Domain & redirect rules
+1. If you use a custom domain on Railway, add it in Railway and then add the domain to Supabase Auth Redirect URLs.
+2. Verify `/reset-password` and other Auth callback paths work (test the reset / sign-in flow).
+
+7.8 Verify sign-up and login flows (manual test checklist)
+1. Open the Railway-deployed site in an incognito browser.
+2. Click Create Account, fill details, and submit. Expect: a success message instructing to confirm email.
+3. Check the test recipient mailbox for the verification email. Click the verification link and confirm you return to the site and are able to log in.
+4. After verification, log in. Expect: redirect to the dashboard and access to personal pages (Profile, Bookings, Payments, Notifications).
+5. In Supabase Console → Auth → Users, confirm `confirmed_at` timestamp is populated for that user.
+
+7.9 Shared DB considerations (Customer + Admin apps)
+- Both apps must point to the same `VITE_SUPABASE_URL` and use their own anon keys (same project) in the frontend.
+- The Admin app must keep `service_role` keyed flows in server/Edge Functions only. Admin UI should never embed service_role in its client bundle.
+- Coordinate with the Admin app to avoid clobbering role or permission conventions. The RLS model in `supabase/schema.sql` enforces role boundaries — ensure Admin app respects them.
+
+7.10 Styling: Force Font Awesome icons to white and set global font sizing
+Add the following CSS to `src/index.css` (or your global stylesheet) to force Font Awesome icons to white and enforce a consistent responsive base font size across desktop/tablet/mobile. This keeps icons visible on dark glassmorphism cards and standardizes typography.
+
+/* Force Font Awesome icons white */
+.fa, .fas, .far, .fal, .fab, [class^="fa-"], svg[class*="fa-"] {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Ensure any icon SVGs use currentColor */
+svg.icon, svg.fa-icon { color: #ffffff !important; fill: currentColor !important; }
+
+/* Global responsive base font-size (default desktop = 16px) */
+:root { --base-font-size: 16px; }
+html { font-size: var(--base-font-size); }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; line-height: 1.4; }
+
+/* Slight downscaling on smaller viewports to keep layout balanced */
+@media (max-width: 1200px) { html { font-size: 15px; } }
+@media (max-width: 768px) { html { font-size: 14px; } }
+
+Notes:
+- Replace any component-local `font-size` values (px) with `rem` where practical so sizes scale with the root font-size. For example, `font-size: 14px` -> `font-size: 0.875rem`.
+- Ensure icons/SVGs use `currentColor` so the global color rules apply. If a component hardcodes `fill` or `stroke`, change it to `fill: currentColor`.
+
+7.11 Accessibility & responsive checks
+- Test the site at desktop/tablet/mobile breakpoints; the `html` font-size adjustments above will reduce text scale naturally.
+- Use browser devtools to audit color contrast and ensure white icons are visible against the card backgrounds.
+
+7.12 Post-deploy verification checklist (final)
+1. Sign up, verify email, log in, and confirm dashboard access.
+2. Create a booking flow (if permitted) and confirm it shows under Bookings.
+3. Upload an avatar (and an ID document if testing private bucket) and confirm read/download behavior using signed URLs if private.
+4. Confirm payments/invoices routes that require admin/service role are blocked from the client (permission errors expected). Those operations must be done via Edge Functions.
+5. Confirm support ticket creation and message posting works for the logged-in customer and that `sender_type` cannot be `staff` from the client.
+
+7.13 Need help? I can:
+- Generate a `security-tests.sql` file with the authorization tests (run on staging).
+- Patch `src/index.css` and any components that hardcode icon color/font sizes to follow the new global policy.
+- Build an Edge Function to return signed URLs for private `id-docs` downloads.
+
+---
+
+After this patch, I'll mark the README task done and can produce `security-tests.sql` or patch the CSS files directly if you want. Which do you want next: (A) `security-tests.sql`, (B) a PR that updates `src/index.css` and major components to follow the typography/icon rules, or (C) both?
+
 

@@ -56,8 +56,8 @@ export function SignInForm() {
       >
         MC
       </div>
-      <h2 style={{ fontSize: 26, marginBottom: 8 }}>Welcome Back</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 24 }}>
+      <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Welcome Back</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
         Sign in to manage your cleaning services, bookings, payments and account.
       </p>
 
@@ -115,7 +115,7 @@ export function SignInForm() {
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
             Remember me
           </label>
-          <Link to="/forgot-password" style={{ fontSize: 13, color: 'var(--clr-white)' }}>
+          <Link to="/forgot-password" style={{ fontSize: '0.8125rem', color: 'var(--clr-white)' }}>
             Forgot Password?
           </Link>
         </div>
@@ -127,7 +127,7 @@ export function SignInForm() {
         </button>
       </form>
 
-      <p style={{ marginTop: 20, fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+      <p style={{ marginTop: 20, fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center' }}>
         Don&apos;t have an account?{' '}
         <a href="#create-account" style={{ color: 'var(--clr-white)', fontWeight: 600 }}>
           Create Account

@@ -210,6 +210,62 @@ create trigger trg_set_booking_number before insert on public.bookings
   for each row execute function public.set_booking_number();
 
 -- =====================================================================
+-- Protect bookings: prevent customers from changing sensitive fields
+-- =====================================================================
+create or replace function public.trg_protect_bookings_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_is_admin boolean;
+  v_cust bigint;
+begin
+  select private.is_admin() into v_is_admin;
+  if v_is_admin then
+    return new;
+  end if;
+
+  select private.current_customer_id() into v_cust;
+  if v_cust is null then
+    raise exception 'permission denied: not a customer';
+  end if;
+
+  if old.customer_id is distinct from v_cust then
+    raise exception 'permission denied: not owner of booking';
+  end if;
+
+  -- forbid changes to sensitive columns by non-admins
+  if new.estimated_price is distinct from old.estimated_price then
+    raise exception 'permission denied: cannot change estimated_price';
+  end if;
+  if new.final_price is distinct from old.final_price then
+    raise exception 'permission denied: cannot change final_price';
+  end if;
+  if new.payment_status is distinct from old.payment_status then
+    raise exception 'permission denied: cannot change payment_status';
+  end if;
+  if new.assigned_staff is distinct from old.assigned_staff then
+    raise exception 'permission denied: cannot change assigned_staff';
+  end if;
+  if new.booking_status is distinct from old.booking_status then
+    raise exception 'permission denied: cannot change booking_status';
+  end if;
+  if new.customer_id is distinct from old.customer_id then
+    raise exception 'permission denied: cannot change customer_id';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_bookings_update on public.bookings;
+create trigger trg_protect_bookings_update
+  before update on public.bookings
+  for each row execute function public.trg_protect_bookings_update();
+
+-- =====================================================================
 -- 7. payments
 -- =====================================================================
 create table if not exists public.payments (
@@ -363,9 +419,11 @@ create policy invites_insert on public.invites for insert to authenticated
   with check (inviter_profile_id = private.current_profile_id() or private.is_admin());
 
 drop policy if exists invites_update on public.invites;
+drop policy if exists invites_update on public.invites;
+-- Only admins may update invite records (consumption is handled server-side)
 create policy invites_update on public.invites for update to authenticated
-  using (inviter_profile_id = private.current_profile_id() or private.is_admin())
-  with check (inviter_profile_id = private.current_profile_id() or private.is_admin());
+  using (private.is_admin())
+  with check (private.is_admin());
 
 -- =====================================================================
 -- Price plans (admin-managed pricing plans for the Payments page)
@@ -466,6 +524,7 @@ as $$
   where p.user_id = (select auth.uid());
 $$;
 
+-- Replace broad "is_admin" helper with explicit admin/staff helpers
 create or replace function private.is_admin()
 returns boolean
 language sql
@@ -475,16 +534,31 @@ stable
 as $$
   select exists (
     select 1 from public.profiles
-    where user_id = (select auth.uid()) and role in ('admin', 'staff')
+    where user_id = (select auth.uid()) and role = 'admin'
+  );
+$$;
+
+create or replace function private.is_staff()
+returns boolean
+language sql
+security definer
+set search_path = ''
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where user_id = (select auth.uid()) and role = 'staff'
   );
 $$;
 
 revoke execute on function private.current_profile_id() from public, anon, authenticated;
 revoke execute on function private.current_customer_id() from public, anon, authenticated;
 revoke execute on function private.is_admin() from public, anon, authenticated;
+revoke execute on function private.is_staff() from public, anon, authenticated;
 grant execute on function private.current_profile_id() to authenticated;
 grant execute on function private.current_customer_id() to authenticated;
 grant execute on function private.is_admin() to authenticated;
+grant execute on function private.is_staff() to authenticated;
 
 -- =====================================================================
 -- handle_new_user: creates profile + customer_profile + address +
@@ -554,6 +628,64 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- =====================================================================
+-- Protect profiles: prevent customers from changing sensitive fields
+-- =====================================================================
+create or replace function public.trg_protect_profiles_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_is_admin boolean;
+  v_uid uuid := (select auth.uid());
+begin
+  -- admin can do anything
+  select private.is_admin() into v_is_admin;
+  if v_is_admin then
+    return new;
+  end if;
+
+  -- otherwise, only allow the row owner to update, and forbid changes to
+  -- role, user_id, email, status
+  if v_uid is null then
+    raise exception 'unauthenticated';
+  end if;
+
+  if old.user_id is null or old.id is null then
+    raise exception 'invalid profile row';
+  end if;
+
+  if not (old.user_id = v_uid) then
+    raise exception 'permission denied: not profile owner';
+  end if;
+
+  if coalesce(new.role, '') <> coalesce(old.role, '') then
+    raise exception 'permission denied: role is immutable';
+  end if;
+
+  if new.user_id is distinct from old.user_id then
+    raise exception 'permission denied: user_id is immutable';
+  end if;
+
+  if coalesce(new.email, '') <> coalesce(old.email, '') then
+    raise exception 'permission denied: email must be changed via Auth';
+  end if;
+
+  if coalesce(new.status, '') <> coalesce(old.status, '') then
+    raise exception 'permission denied: status is admin-only';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_profiles_update on public.profiles;
+create trigger trg_protect_profiles_update
+  before update on public.profiles
+  for each row execute function public.trg_protect_profiles_update();
 
 -- =====================================================================
 -- Row Level Security
@@ -702,11 +834,17 @@ create policy support_ticket_messages_select on public.support_ticket_messages f
   );
 
 drop policy if exists support_ticket_messages_insert on public.support_ticket_messages;
+drop policy if exists support_ticket_messages_insert on public.support_ticket_messages;
 create policy support_ticket_messages_insert on public.support_ticket_messages for insert to authenticated
   with check (
-    private.is_admin() or exists (
-      select 1 from public.support_tickets t
-      where t.id = ticket_id and t.customer_id = private.current_customer_id()
+    private.is_admin()
+    OR (
+      exists (
+        select 1 from public.support_tickets t
+        where t.id = ticket_id and t.customer_id = private.current_customer_id()
+      )
+      AND sender_type = 'customer'
+      AND profile_id = private.current_profile_id()
     )
   );
 
@@ -756,3 +894,32 @@ values
   ('Recurring Cleaning', 'recurring-cleaning', 'Scheduled weekly, bi-weekly or monthly cleaning plans.', 12000, 'flat', 120, 8),
   ('Special Event Cleaning', 'special-event-cleaning', 'Before/after cleaning for parties and events.', 28000, 'flat', 200, 9)
 on conflict (slug) do nothing;
+
+-- =====================================================================
+-- Security audit helper: detect duplicate auth.users emails (report-only)
+-- Important: do NOT auto-remove duplicates. Review results and migrate safely.
+-- =====================================================================
+create table if not exists public.security_audit_duplicate_auth_emails (
+  id serial primary key,
+  email text not null,
+  user_ids uuid[] not null,
+  duplicate_count integer not null,
+  discovered_at timestamptz not null default now()
+);
+
+do $$
+declare
+  r record;
+begin
+  for r in
+    select email, array_agg(id) as ids, count(*) as cnt
+    from auth.users
+    where email is not null
+    group by email
+    having count(*) > 1
+  loop
+    insert into public.security_audit_duplicate_auth_emails (email, user_ids, duplicate_count)
+    values (r.email, r.ids, r.cnt);
+    raise notice 'Duplicate auth.users email detected: % -> %', r.email, r.ids;
+  end loop;
+end$$;

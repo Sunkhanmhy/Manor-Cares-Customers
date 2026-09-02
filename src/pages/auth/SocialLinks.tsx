@@ -11,8 +11,8 @@ const SOCIAL_LINKS = [
 export function SocialLinks() {
   return (
     <GlassCard style={{ padding: 'clamp(20px, 3vw, 28px)', width: '100%' }}>
-      <h3 style={{ fontSize: 17, marginBottom: 6 }}>Social Platforms</h3>
-      <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
+      <h3 style={{ fontSize: '1.0625rem', marginBottom: 6 }}>Social Platforms</h3>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginBottom: 16 }}>
         Follow Manor-Cares for updates, offers and behind-the-scenes moments.
       </p>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -35,7 +35,7 @@ export function SocialLinks() {
               border: '1px solid var(--glass-border)',
               color: 'var(--clr-white)',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: '0.8125rem',
               textDecoration: 'none',
             }}
           >

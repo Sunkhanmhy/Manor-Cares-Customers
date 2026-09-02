@@ -47,8 +47,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             MC
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--clr-white)' }}>Manor-Cares</div>
-            <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>Customer Portal</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--clr-white)' }}>Manor-Cares</div>
+            <div style={{ fontSize: '0.71875rem', color: 'var(--text-muted)' }}>Customer Portal</div>
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         </nav>
 
         <div style={{ padding: 16, borderTop: '1px solid var(--glass-border)' }}>
-          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10 }}>
+          <div style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 10 }}>
             {profile?.first_name} {profile?.last_name}
           </div>
           <button className="btn btn-ghost btn-block" onClick={() => signOut()}>

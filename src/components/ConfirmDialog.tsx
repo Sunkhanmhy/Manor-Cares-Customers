@@ -40,7 +40,7 @@ export function ConfirmDialog({
       <GlassCard strong style={{ padding: 24, maxWidth: 400, width: '100%' }}>
         <div onClick={(e) => e.stopPropagation()}>
           <h3 style={{ marginBottom: 10 }}>{title}</h3>
-          <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 20 }}>{message}</p>
+          <p style={{ fontSize: '0.84375rem', color: 'var(--text-muted)', marginBottom: 20 }}>{message}</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button className="btn btn-ghost" onClick={onCancel} disabled={busy}>
               Cancel

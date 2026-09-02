@@ -87,8 +87,8 @@ export function OverviewPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <GlassCard style={{ padding: 24 }}>
-        <h2 style={{ fontSize: 22, marginBottom: 6 }}>Welcome back, {profile?.first_name}! 👋</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>
+        <h2 style={{ fontSize: '1.375rem', marginBottom: 6 }}>Welcome back, {profile?.first_name}! 👋</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem' }}>
           Customer #{customerProfile?.customer_number ?? '—'} · Account status:{' '}
           <span style={{ color: 'var(--clr-green)', fontWeight: 600 }}>{customerProfile?.customer_status ?? 'active'}</span>
         </p>
@@ -219,16 +219,16 @@ export function OverviewPage() {
 
           <div className="card-grid">
             <GlassCard style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 15, marginBottom: 14 }}>Upcoming Cleaning</h3>
+              <h3 style={{ fontSize: '0.9375rem', marginBottom: 14 }}>Upcoming Cleaning</h3>
               {stats.upcomingBooking ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.84375rem' }}>
                   <strong>{stats.upcomingBooking.cleaning_services?.name}</strong>
                   <span>{formatDate(stats.upcomingBooking.booking_date)} at {stats.upcomingBooking.booking_time}</span>
                   <span style={{ color: 'var(--text-muted)' }}>{stats.upcomingBooking.property_address}</span>
                   <StatusBadge status={stats.upcomingBooking.booking_status} kind="booking" />
                 </div>
               ) : (
-                <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>No upcoming cleanings scheduled.</p>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--text-muted)' }}>No upcoming cleanings scheduled.</p>
               )}
               <Link to="/dashboard/book" className="btn btn-primary" style={{ marginTop: 16 }}>
                 Book a Cleaning
@@ -236,15 +236,15 @@ export function OverviewPage() {
             </GlassCard>
 
             <GlassCard style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 15, marginBottom: 14 }}>Last Completed Service</h3>
+              <h3 style={{ fontSize: '0.9375rem', marginBottom: 14 }}>Last Completed Service</h3>
               {stats.lastCompleted ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.84375rem' }}>
                   <strong>{stats.lastCompleted.cleaning_services?.name}</strong>
                   <span>{formatDate(stats.lastCompleted.booking_date)}</span>
                   <span style={{ color: 'var(--text-muted)' }}>{stats.lastCompleted.property_address}</span>
                 </div>
               ) : (
-                <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>No completed services yet.</p>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--text-muted)' }}>No completed services yet.</p>
               )}
               <Link to="/dashboard/bookings" className="btn btn-ghost" style={{ marginTop: 16 }}>
                 View All Bookings
@@ -262,9 +262,9 @@ function StatCard({ label, value, icon, accent = false }: { label: string; value
     <GlassCard style={{ padding: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <span className="icon">{icon}</span>
-        <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{label}</span>
+        <span style={{ fontSize: '0.78125rem', color: 'var(--text-muted)' }}>{label}</span>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: accent ? 'var(--clr-green)' : 'var(--clr-white)' }}>{value}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: accent ? 'var(--clr-green)' : 'var(--clr-white)' }}>{value}</div>
     </GlassCard>
   );
 }
