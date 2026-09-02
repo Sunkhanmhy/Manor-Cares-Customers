@@ -115,20 +115,20 @@ export function SignUpForm() {
 
   return (
     <GlassCard strong id="create-account" style={{ padding: 'clamp(24px, 4vw, 40px)', width: '100%' }}>
-      <h2 style={{ fontSize: 26, marginBottom: 8 }}>Create Account</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 22 }}>
+      <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Create Account</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 22 }}>
         Join Manor-Cares to book professional cleaning services in minutes.
       </p>
 
       {successMessage && (
         <div className="glass" style={{ padding: 14, marginBottom: 18, borderLeft: '3px solid var(--clr-green)' }}>
-          <p style={{ fontSize: 13.5 }}>{successMessage}</p>
+          <p style={{ fontSize: '0.84375rem' }}>{successMessage}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }} noValidate>
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
+          <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Personal Information
           </legend>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -192,7 +192,7 @@ export function SignUpForm() {
         </fieldset>
 
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
+          <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Address Information
           </legend>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -235,7 +235,7 @@ export function SignUpForm() {
         </fieldset>
 
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
+          <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Account Information
           </legend>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

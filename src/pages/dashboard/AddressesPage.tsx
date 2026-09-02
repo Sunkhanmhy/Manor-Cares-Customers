@@ -125,7 +125,7 @@ export function AddressesPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>Manage the addresses used for your cleaning bookings.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem' }}>Manage the addresses used for your cleaning bookings.</p>
         <button className="btn btn-primary" onClick={openAddForm}>
           + Add Address
         </button>
@@ -133,7 +133,7 @@ export function AddressesPage() {
 
       {showForm && (
         <GlassCard style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 15, marginBottom: 16 }}>{editingId ? 'Edit Address' : 'Add New Address'}</h3>
+          <h3 style={{ fontSize: '0.9375rem', marginBottom: 16 }}>{editingId ? 'Edit Address' : 'Add New Address'}</h3>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div className="field" style={{ gridColumn: '1 / -1' }}>
@@ -208,20 +208,20 @@ export function AddressesPage() {
                 <span className="badge badge-blue">{address.address_type}</span>
                 {address.is_default && <span className="badge badge-green">Default</span>}
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{address.address_line}</p>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 4 }}>{address.address_line}</p>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: 16 }}>
                 {address.city}, {address.state ? `${address.state}, ` : ''}
                 {address.country} {address.postal_code}
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn btn-ghost" onClick={() => openEditForm(address)} style={{ padding: '8px 14px', fontSize: 13 }}>
+                <button className="btn btn-ghost" onClick={() => openEditForm(address)} style={{ padding: '8px 14px', fontSize: '0.8125rem' }}>
                   Edit
                 </button>
                 {!address.is_default && (
                   <button
                     className="btn btn-ghost"
                     onClick={() => handleSetDefault(address)}
-                    style={{ padding: '8px 14px', fontSize: 13 }}
+                    style={{ padding: '8px 14px', fontSize: '0.8125rem' }}
                   >
                     Set Default
                   </button>
@@ -229,7 +229,7 @@ export function AddressesPage() {
                 <button
                   className="btn btn-danger"
                   onClick={() => setDeleteTarget(address)}
-                  style={{ padding: '8px 14px', fontSize: 13 }}
+                  style={{ padding: '8px 14px', fontSize: '0.8125rem' }}
                 >
                   Delete
                 </button>

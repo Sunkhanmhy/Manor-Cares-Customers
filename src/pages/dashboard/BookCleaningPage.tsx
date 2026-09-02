@@ -146,10 +146,10 @@ export function BookCleaningPage() {
   if (confirmedNumber) {
     return (
       <GlassCard style={{ padding: 40, maxWidth: 480, margin: '40px auto', textAlign: 'center' }}>
-        <div className="icon" style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-        <h2 style={{ fontSize: 20, marginBottom: 8 }}>Booking Confirmed!</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 6 }}>Your booking reference is</p>
-        <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--clr-green)', marginBottom: 24 }}>{confirmedNumber}</p>
+        <div className="icon" style={{ fontSize: '3rem', marginBottom: 12 }}>✅</div>
+        <h2 style={{ fontSize: '1.25rem', marginBottom: 8 }}>Booking Confirmed!</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 6 }}>Your booking reference is</p>
+        <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-green)', marginBottom: 24 }}>{confirmedNumber}</p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button className="btn btn-primary" onClick={() => navigate('/dashboard/bookings')}>
             View My Bookings
@@ -165,8 +165,8 @@ export function BookCleaningPage() {
   if (step === 'summary') {
     return (
       <GlassCard style={{ padding: 28, maxWidth: 560 }}>
-        <h2 style={{ fontSize: 19, marginBottom: 18 }}>Booking Summary</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13.5, marginBottom: 22 }}>
+        <h2 style={{ fontSize: '1.1875rem', marginBottom: 18 }}>Booking Summary</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.84375rem', marginBottom: 22 }}>
           <SummaryRow label="Service" value={selectedService?.name ?? '—'} />
           <SummaryRow label="Property Type" value={PROPERTY_TYPES.find((p) => p.value === propertyType)?.label ?? ''} />
           <SummaryRow label="Date & Time" value={`${bookingDate} at ${bookingTime}`} />
@@ -192,8 +192,8 @@ export function BookCleaningPage() {
   }
 
   return (
-    <GlassCard style={{ padding: 28, maxWidth: 640 }}>
-      <h2 style={{ fontSize: 19, marginBottom: 20 }}>Book a Cleaning Service</h2>
+      <GlassCard style={{ padding: 28, maxWidth: 640 }}>
+        <h2 style={{ fontSize: '1.1875rem', marginBottom: 20 }}>Book a Cleaning Service</h2>
       <form onSubmit={handleContinue} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div className="field">
           <label>Cleaning Service</label>
@@ -300,8 +300,8 @@ export function BookCleaningPage() {
         </div>
 
         <GlassCard style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>Estimated Price</span>
-          <strong style={{ fontSize: 18, color: 'var(--clr-green)' }}>{formatCurrency(estimatedPrice)}</strong>
+          <span style={{ fontSize: '0.84375rem', color: 'var(--text-muted)' }}>Estimated Price</span>
+          <strong style={{ fontSize: '1.125rem', color: 'var(--clr-green)' }}>{formatCurrency(estimatedPrice)}</strong>
         </GlassCard>
 
         <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>

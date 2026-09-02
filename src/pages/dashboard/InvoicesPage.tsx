@@ -62,7 +62,7 @@ export function InvoicesPage() {
       <GlassCard style={{ padding: 18 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <label className="checkbox-row" style={{ alignItems: 'center' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Status</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Status</span>
             <select
               className="input"
               value={statusFilter}
@@ -78,7 +78,7 @@ export function InvoicesPage() {
               <option value="void">Void</option>
             </select>
           </label>
-          <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: 13 }}>
+          <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
             Showing {invoices.length} / {totalCount ?? '—'}
           </div>
         </div>
@@ -113,7 +113,7 @@ export function InvoicesPage() {
                     <td>
                       <button
                         className="btn btn-ghost"
-                        style={{ padding: '6px 12px', fontSize: 12.5 }}
+                        style={{ padding: '6px 12px', fontSize: '0.78125rem' }}
                         onClick={() => setViewing(inv)}
                       >
                         View

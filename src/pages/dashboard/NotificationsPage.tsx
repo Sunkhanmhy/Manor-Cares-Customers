@@ -75,7 +75,7 @@ export function NotificationsPage() {
           <input type="checkbox" checked={onlyUnread} onChange={(e) => setOnlyUnread(e.target.checked)} />
           Show unread only
         </label>
-        <button className="btn btn-ghost" onClick={markAllAsRead} style={{ fontSize: 12.5 }}>
+        <button className="btn btn-ghost" onClick={markAllAsRead} style={{ fontSize: '0.78125rem' }}>
           Mark all as read
         </button>
       </div>
@@ -101,11 +101,11 @@ export function NotificationsPage() {
               <span className="icon">{ICONS[n.type] ?? '🔔'}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <strong style={{ fontSize: 13.5 }}>{n.title}</strong>
+                  <strong style={{ fontSize: '0.84375rem' }}>{n.title}</strong>
                   {!n.is_read && <span className="badge badge-blue">New</span>}
                 </div>
-                <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4 }}>{n.message}</p>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>{formatDateTime(n.created_at)}</p>
+                <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginTop: 4 }}>{n.message}</p>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: 6 }}>{formatDateTime(n.created_at)}</p>
               </div>
             </GlassCard>
           ))}
