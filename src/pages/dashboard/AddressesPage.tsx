@@ -19,6 +19,14 @@ const EMPTY_FORM = {
   building_name: '',
   landmark: '',
   delivery_notes: '',
+  office_address_line: '',
+  office_city: '',
+  office_state: '',
+  office_country: '',
+  office_postal_code: '',
+  office_building_name: '',
+  office_landmark: '',
+  office_delivery_notes: '',
 };
 
 export function AddressesPage() {
@@ -43,7 +51,20 @@ export function AddressesPage() {
       .eq('profile_id', profile.id)
       .order('is_default', { ascending: false })
       .order('created_at', { ascending: false });
-    setAddresses((data as Address[]) ?? []);
+    const all = (data as Address[]) ?? [];
+    setAddresses(all);
+
+    const workAddress = all.find((a) => a.address_type === 'work');
+    if (!editingId) {
+      setForm((prev) => ({
+        ...prev,
+        office_address_line: workAddress?.address_line ?? '',
+        office_city: workAddress?.city ?? '',
+        office_state: workAddress?.state ?? '',
+        office_country: workAddress?.country ?? '',
+        office_postal_code: workAddress?.postal_code ?? '',
+      }));
+    }
     setLoading(false);
   }
 
@@ -54,10 +75,19 @@ export function AddressesPage() {
 
   function openAddForm() {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    const workAddress = addresses.find((a) => a.address_type === 'work');
+    setForm({
+      ...EMPTY_FORM,
+      office_address_line: workAddress?.address_line ?? '',
+      office_city: workAddress?.city ?? '',
+      office_state: workAddress?.state ?? '',
+      office_country: workAddress?.country ?? '',
+      office_postal_code: workAddress?.postal_code ?? '',
+    });
   }
 
   function openEditForm(address: Address) {
+    const workAddress = addresses.find((a) => a.address_type === 'work');
     setEditingId(address.id);
     setForm({
       address_type: address.address_type,
@@ -71,6 +101,14 @@ export function AddressesPage() {
       building_name: '',
       landmark: '',
       delivery_notes: '',
+      office_address_line: workAddress?.address_line ?? '',
+      office_city: workAddress?.city ?? '',
+      office_state: workAddress?.state ?? '',
+      office_country: workAddress?.country ?? '',
+      office_postal_code: workAddress?.postal_code ?? '',
+      office_building_name: '',
+      office_landmark: '',
+      office_delivery_notes: '',
     });
   }
 
@@ -104,6 +142,29 @@ export function AddressesPage() {
         const { error } = await supabase.from('addresses').insert(payload);
         if (error) throw error;
         toast.success('Address added.');
+      }
+
+      const hasOfficeAddress = form.office_address_line.trim() && form.office_city.trim() && form.office_country.trim();
+      if (hasOfficeAddress) {
+        const officePayload = {
+          profile_id: profile.id,
+          address_type: 'work' as Address['address_type'],
+          address_line: form.office_address_line.trim(),
+          city: form.office_city.trim(),
+          state: form.office_state.trim() || null,
+          country: form.office_country.trim(),
+          postal_code: form.office_postal_code.trim() || null,
+          is_default: false,
+        };
+
+        const existingWork = addresses.find((a) => a.address_type === 'work');
+        if (existingWork) {
+          const { error: officeUpdateError } = await supabase.from('addresses').update(officePayload).eq('id', existingWork.id);
+          if (officeUpdateError) throw officeUpdateError;
+        } else {
+          const { error: officeInsertError } = await supabase.from('addresses').insert(officePayload);
+          if (officeInsertError) throw officeInsertError;
+        }
       }
 
       setEditingId(null);
@@ -157,7 +218,7 @@ export function AddressesPage() {
         <GlassCard style={{ padding: 20 }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Icon name="location" size={18} />
-            <h3 style={{ margin: 0, fontSize: '1rem' }}>{editingId ? 'Edit Address' : 'Personal Details'}</h3>
+            <h3 style={{ margin: 0, fontSize: '1rem' }}>{editingId ? 'Edit Address' : 'Default Address'}</h3>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -221,6 +282,47 @@ export function AddressesPage() {
               <label className="field" style={{ gridColumn: '1 / -1' }}>
                 <span>Delivery Notes</span>
                 <textarea className="input" rows={3} value={form.delivery_notes} onChange={(e) => setForm({ ...form, delivery_notes: e.target.value })} />
+              </label>
+
+              <div style={{ gridColumn: '1 / -1', marginTop: 8, marginBottom: 2, fontWeight: 700, fontSize: '0.875rem', color: 'var(--clr-white)' }}>
+                Work / Office Address
+              </div>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Office Street Address</span>
+                <input
+                  className="input"
+                  value={form.office_address_line}
+                  onChange={(e) => setForm({ ...form, office_address_line: e.target.value })}
+                  placeholder="Enter office address"
+                />
+              </label>
+              <label className="field">
+                <span>Office City</span>
+                <input className="input" value={form.office_city} onChange={(e) => setForm({ ...form, office_city: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Office State / Region</span>
+                <input className="input" value={form.office_state} onChange={(e) => setForm({ ...form, office_state: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Office Country</span>
+                <input className="input" value={form.office_country} onChange={(e) => setForm({ ...form, office_country: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Office Postal Code</span>
+                <input className="input" value={form.office_postal_code} onChange={(e) => setForm({ ...form, office_postal_code: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Office / Building Name</span>
+                <input className="input" value={form.office_building_name} onChange={(e) => setForm({ ...form, office_building_name: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>Office Landmark</span>
+                <input className="input" value={form.office_landmark} onChange={(e) => setForm({ ...form, office_landmark: e.target.value })} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Office Delivery Notes</span>
+                <textarea className="input" rows={3} value={form.office_delivery_notes} onChange={(e) => setForm({ ...form, office_delivery_notes: e.target.value })} />
               </label>
             </div>
 

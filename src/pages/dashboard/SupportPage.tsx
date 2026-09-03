@@ -9,6 +9,12 @@ import { Spinner } from '../../components/Spinner';
 import { formatDateTime } from '../../lib/format';
 import type { Address, SupportTicket, TicketPriority } from '../../types/database';
 
+function extractTicketMeta(description: string) {
+  const department = description.split('Department: ')[1]?.split('\n')[0]?.trim() || 'General';
+  const requestType = description.split('Request type: ')[1]?.split('\n')[0]?.trim() || 'General enquiry';
+  return { department, requestType };
+}
+
 export function SupportPage() {
   const { customerProfile, profile, user } = useAuth();
   const toast = useToast();
@@ -16,6 +22,7 @@ export function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookingOptions, setBookingOptions] = useState<Array<{ id: number; property_type: string; property_address: string }>>([]);
+  const [resolvedCustomerId, setResolvedCustomerId] = useState<number | null>(customerProfile?.id ?? null);
 
   const [ticketForm, setTicketForm] = useState({
     full_name: '',
@@ -48,8 +55,35 @@ export function SupportPage() {
   }, [profile, user]);
 
   async function load() {
-    if (!customerProfile || !profile) {
+    const authEmail = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+
+    if (!authEmail) {
       setTickets([]);
+      setBookingOptions([]);
+      setResolvedCustomerId(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data: profileRow } = await supabase.from('profiles').select('*').ilike('email', authEmail).maybeSingle();
+
+    const profileId = profileRow?.id ?? profile?.id ?? null;
+    if (!profileId) {
+      setTickets([]);
+      setBookingOptions([]);
+      setResolvedCustomerId(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data: customerRow } = await supabase.from('customer_profiles').select('id').eq('profile_id', profileId).maybeSingle();
+    const customerId = customerRow?.id ?? customerProfile?.id ?? null;
+
+    setResolvedCustomerId(customerId);
+
+    if (!customerId) {
+      setTickets([]);
+      setBookingOptions([]);
       setLoading(false);
       return;
     }
@@ -57,9 +91,9 @@ export function SupportPage() {
     setLoading(true);
 
     const [ticketRes, addressRes, bookingRes] = await Promise.all([
-      supabase.from('support_tickets').select('*').eq('customer_id', customerProfile.id).order('created_at', { ascending: false }),
-      supabase.from('addresses').select('*').eq('profile_id', profile.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
-      supabase.from('bookings').select('id, property_type, property_address').eq('customer_id', customerProfile.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('support_tickets').select('*').eq('customer_id', customerId).order('created_at', { ascending: false }),
+      supabase.from('addresses').select('*').eq('profile_id', profileId).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('bookings').select('id, property_type, property_address').eq('customer_id', customerId).order('created_at', { ascending: false }).limit(20),
     ]);
 
     setTickets((ticketRes.data as SupportTicket[]) ?? []);
@@ -72,18 +106,20 @@ export function SupportPage() {
     setTicketForm((prev) => ({
       ...prev,
       full_name: activeCustomerName,
-      phone: profile.phone ?? '',
-      email: profile.email ?? user?.email ?? '',
+      phone: profileRow.phone ?? profile?.phone ?? '',
+      email: profileRow.email ?? profile?.email ?? user?.email ?? '',
       address: defaultAddressText,
     }));
+
+    const newestBooking = ((bookingRes.data ?? []) as Array<{ id: number; property_type: string; property_address: string }>)[0];
 
     setReviewForm((prev) => ({
       ...prev,
       full_name: activeCustomerName,
-      phone: profile.phone ?? '',
-      email: profile.email ?? user?.email ?? '',
+      phone: profileRow.phone ?? profile?.phone ?? '',
+      email: profileRow.email ?? profile?.email ?? user?.email ?? '',
       address: defaultAddressText,
-      service_name: bookingOptions[0]?.property_type ?? 'General Service',
+      service_name: newestBooking?.property_type ?? 'General Service',
     }));
 
     setLoading(false);
@@ -96,7 +132,7 @@ export function SupportPage() {
 
   async function handleTicketSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerProfile || submittingTicket) return;
+    if (!resolvedCustomerId || submittingTicket) return;
     if (!ticketForm.subject.trim() || !ticketForm.details.trim()) {
       toast.error('Please fill in the subject and issue details.');
       return;
@@ -115,7 +151,7 @@ export function SupportPage() {
       ].join('\n');
 
       const { error } = await supabase.from('support_tickets').insert({
-        customer_id: customerProfile.id,
+        customer_id: resolvedCustomerId,
         subject: `${ticketForm.department} - ${ticketForm.subject.trim()}`,
         description: descriptionText,
         priority: ticketForm.priority,
@@ -135,7 +171,7 @@ export function SupportPage() {
 
   async function handleReviewSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerProfile || submittingReview) return;
+    if (!resolvedCustomerId || submittingReview) return;
     if (!reviewForm.comments.trim()) {
       toast.error('Please leave a review comment before submitting.');
       return;
@@ -160,7 +196,7 @@ export function SupportPage() {
       ].join('\n');
 
       const { error } = await supabase.from('service_reviews').insert({
-        customer_id: customerProfile.id,
+        customer_id: resolvedCustomerId,
         booking_id: bookingId,
         rating: Number(reviewForm.rating),
         review: reviewText,
@@ -328,38 +364,53 @@ export function SupportPage() {
           <h3 style={{ margin: 0, fontSize: '1rem' }}>Submitted Enquiries & Ticket Report</h3>
         </div>
 
-        {loading ? (
-          <div style={{ padding: 12 }}><SkeletonCard /></div>
-        ) : tickets.length === 0 ? (
-          <div style={{ padding: '18px 12px', color: 'var(--text-muted)' }}>No data available. Update your record, now!</div>
-        ) : (
-          <div className="scroll-x">
-            <table className="table-clean">
-              <thead>
+        <div className="scroll-x">
+          <table className="table-clean">
+            <thead>
+              <tr>
+                <th>S/No.</th>
+                <th>Ticket Details</th>
+                <th>Department</th>
+                <th>Ticket Type</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th>Ticket #</th>
-                  <th>Subject</th>
-                  <th>Request Type</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                  <th>Created</th>
+                  <td colSpan={5} style={{ padding: '14px 12px' }}><SkeletonCard /></td>
                 </tr>
-              </thead>
-              <tbody>
-                {tickets.map((ticket) => (
-                  <tr key={ticket.id}>
-                    <td>#{ticket.id}</td>
-                    <td>{ticket.subject}</td>
-                    <td>{ticket.description.split('Request type: ')[1]?.split('\n')[0] || 'General enquiry'}</td>
-                    <td><span className={`badge ${ticket.status === 'closed' ? 'badge-green' : ticket.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>{ticket.status}</span></td>
-                    <td style={{ textTransform: 'capitalize' }}>{ticket.priority}</td>
-                    <td>{formatDateTime(ticket.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ) : tickets.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '18px 14px' }}>
+                    No data available. Update your record, now!
+                  </td>
+                </tr>
+              ) : (
+                tickets.map((ticket, index) => {
+                  const meta = extractTicketMeta(ticket.description);
+                  return (
+                    <tr key={ticket.id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <div style={{ fontWeight: 700 }}>{ticket.subject}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.78125rem' }}>#{ticket.id} • {formatDateTime(ticket.created_at)}</div>
+                        <div style={{ marginTop: 4 }}>
+                          <span className={`badge ${ticket.status === 'closed' ? 'badge-green' : ticket.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>
+                            {ticket.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td>{meta.department}</td>
+                      <td>{meta.requestType}</td>
+                      <td style={{ textTransform: 'capitalize' }}>{ticket.priority}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </GlassCard>
     </div>
   );

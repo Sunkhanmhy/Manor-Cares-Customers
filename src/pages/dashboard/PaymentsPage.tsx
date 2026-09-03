@@ -120,6 +120,15 @@ const STANDARD_PRIVATE_PLANS = [
   },
 ] as const;
 
+const PLAN_STYLES = [
+  { bg: 'linear-gradient(145deg, rgba(245,158,11,0.2), rgba(245,158,11,0.06))', border: '1px solid rgba(245,158,11,0.42)' },
+  { bg: 'linear-gradient(145deg, rgba(251,113,133,0.2), rgba(251,113,133,0.06))', border: '1px solid rgba(251,113,133,0.42)' },
+  { bg: 'linear-gradient(145deg, rgba(52,211,153,0.2), rgba(52,211,153,0.06))', border: '1px solid rgba(52,211,153,0.42)' },
+  { bg: 'linear-gradient(145deg, rgba(167,139,250,0.2), rgba(167,139,250,0.06))', border: '1px solid rgba(167,139,250,0.42)' },
+  { bg: 'linear-gradient(145deg, rgba(96,165,250,0.2), rgba(96,165,250,0.06))', border: '1px solid rgba(96,165,250,0.42)' },
+  { bg: 'linear-gradient(145deg, rgba(45,212,191,0.2), rgba(45,212,191,0.06))', border: '1px solid rgba(45,212,191,0.42)' },
+] as const;
+
 const PRIVATE_TYPE_MULTIPLIER: Record<PrivatePropertyCalc['propertyType'], number> = {
   house: 1,
   apartment: 1.5,
@@ -244,8 +253,8 @@ export function PaymentsPage() {
 
       <div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(220px, 1fr))', gap: 14 }}>
-          {STANDARD_PRIVATE_PLANS.map((plan) => (
-            <GlassCard key={plan.name} style={{ padding: 16 }}>
+          {STANDARD_PRIVATE_PLANS.map((plan, index) => (
+            <GlassCard key={plan.name} style={{ padding: 16, background: PLAN_STYLES[index].bg, border: PLAN_STYLES[index].border }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
                 <div>
                   <div style={{ fontSize: '1rem', fontWeight: 700 }}>{plan.name}</div>
@@ -260,7 +269,6 @@ export function PaymentsPage() {
               </ul>
               <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                 <button type="button" className="btn btn-primary">Choose</button>
-                <button type="button" className="btn btn-ghost">Details</button>
               </div>
             </GlassCard>
           ))}

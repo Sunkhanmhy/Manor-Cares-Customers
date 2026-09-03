@@ -31,6 +31,11 @@ const defaultProfileForm = {
   x_url: '',
   instagram_url: '',
   telegram_url: '',
+  father_name: '',
+  mother_name: '',
+  parent_phone: '',
+  parent_email: '',
+  parent_address: '',
 };
 
 export function ProfilePage() {
@@ -42,8 +47,13 @@ export function ProfilePage() {
 
   const displayName = useMemo(() => {
     const fullName = [form.first_name, form.last_name].filter(Boolean).join(' ').trim();
-    return fullName || user?.email?.split('@')[0] || 'Customer Profile';
+    return fullName || user?.email?.split('@')[0] || 'Customer';
   }, [form.first_name, form.last_name, user?.email]);
+
+  const fallbackAvatar = useMemo(() => {
+    const g = (form.gender ?? '').toLowerCase();
+    return g === 'female' ? '👩' : '👨';
+  }, [form.gender]);
 
   useEffect(() => {
     if (!profile && !user) return;
@@ -53,7 +63,7 @@ export function ProfilePage() {
       first_name: profile?.first_name ?? '',
       last_name: profile?.last_name ?? '',
       phone: profile?.phone ?? '',
-      profile_picture_url: profile?.profile_picture_url ?? profile?.avatar_url ?? '/logo.jpg',
+      profile_picture_url: profile?.profile_picture_url ?? profile?.avatar_url ?? '',
       id_document_url: profile?.id_document_url ?? '',
       preferred_name: profile?.preferred_name ?? '',
       date_of_birth: profile?.date_of_birth ?? '',
@@ -73,8 +83,85 @@ export function ProfilePage() {
       x_url: profile?.x_url ?? customerProfile?.x_url ?? '',
       instagram_url: profile?.instagram_url ?? customerProfile?.instagram_url ?? '',
       telegram_url: profile?.telegram_url ?? customerProfile?.telegram_url ?? '',
+      father_name: '',
+      mother_name: '',
+      parent_phone: '',
+      parent_email: '',
+      parent_address: '',
     });
   }, [profile, customerProfile, user]);
+
+  useEffect(() => {
+    const email = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+    if (!email) return;
+
+    let active = true;
+
+    async function hydrateFromDatabase() {
+      const { data: profileRow } = await supabase.from('profiles').select('*').ilike('email', email).maybeSingle();
+
+      if (!active) return;
+
+      if (!profileRow) return;
+
+      const { data: customerRow } = await supabase
+        .from('customer_profiles')
+        .select('*')
+        .eq('profile_id', profileRow.id)
+        .maybeSingle();
+
+      let parentInfo: Record<string, string> = {};
+      if (customerRow?.notes) {
+        try {
+          const parsed = JSON.parse(customerRow.notes);
+          parentInfo = parsed?.parents ?? {};
+        } catch {
+          parentInfo = {};
+        }
+      }
+
+      if (!active) return;
+
+      setForm((prev) => ({
+        ...prev,
+        email: profileRow.email ?? prev.email,
+        first_name: profileRow.first_name ?? prev.first_name,
+        last_name: profileRow.last_name ?? prev.last_name,
+        phone: profileRow.phone ?? prev.phone,
+        profile_picture_url: profileRow.profile_picture_url ?? profileRow.avatar_url ?? prev.profile_picture_url,
+        id_document_url: profileRow.id_document_url ?? prev.id_document_url,
+        preferred_name: profileRow.preferred_name ?? prev.preferred_name,
+        date_of_birth: profileRow.date_of_birth ?? prev.date_of_birth,
+        gender: profileRow.gender ?? prev.gender,
+        career_status: profileRow.career_status ?? prev.career_status,
+        relationship_status: profileRow.relationship_status ?? prev.relationship_status,
+        address_line: profileRow.address_line ?? prev.address_line,
+        city: profileRow.city ?? prev.city,
+        state: profileRow.state ?? prev.state,
+        country: profileRow.country ?? prev.country,
+        postal_code: profileRow.postal_code ?? prev.postal_code,
+        preferred_contact_method: customerRow?.preferred_contact_method ?? prev.preferred_contact_method,
+        customer_status: customerRow?.customer_status ?? prev.customer_status,
+        property_type: customerRow?.property_type ?? prev.property_type,
+        bio: profileRow.bio ?? prev.bio,
+        facebook_url: profileRow.facebook_url ?? customerRow?.facebook_url ?? prev.facebook_url,
+        x_url: profileRow.x_url ?? customerRow?.x_url ?? prev.x_url,
+        instagram_url: profileRow.instagram_url ?? customerRow?.instagram_url ?? prev.instagram_url,
+        telegram_url: profileRow.telegram_url ?? customerRow?.telegram_url ?? prev.telegram_url,
+        father_name: parentInfo.father_name ?? '',
+        mother_name: parentInfo.mother_name ?? '',
+        parent_phone: parentInfo.parent_phone ?? '',
+        parent_email: parentInfo.parent_email ?? '',
+        parent_address: parentInfo.parent_address ?? '',
+      }));
+    }
+
+    void hydrateFromDatabase();
+
+    return () => {
+      active = false;
+    };
+  }, [user?.email, profile?.email]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -105,8 +192,13 @@ export function ProfilePage() {
         telegram_url: form.telegram_url.trim() || null,
       };
 
-      if (profile) {
-        const { error: profileError } = await supabase.from('profiles').update(profilePayload).eq('id', profile.id);
+      const lookupEmail = (user?.email ?? form.email).trim().toLowerCase();
+      const { data: existingByEmail } = await supabase.from('profiles').select('id').ilike('email', lookupEmail).maybeSingle();
+
+      let resolvedProfileId = profile?.id ?? existingByEmail?.id ?? null;
+
+      if (resolvedProfileId) {
+        const { error: profileError } = await supabase.from('profiles').update(profilePayload).eq('id', resolvedProfileId);
         if (profileError) throw profileError;
       } else if (user) {
         const { data: createdProfile, error: createProfileError } = await supabase
@@ -121,9 +213,10 @@ export function ProfilePage() {
           .single();
 
         if (createProfileError || !createdProfile) throw createProfileError ?? new Error('Profile creation failed');
+        resolvedProfileId = createdProfile.id;
 
         const { error: customerError } = await supabase.from('customer_profiles').insert({
-          profile_id: createdProfile.id,
+          profile_id: resolvedProfileId,
           preferred_contact_method: form.preferred_contact_method,
           customer_status: form.customer_status,
           property_type: form.property_type,
@@ -132,7 +225,18 @@ export function ProfilePage() {
         if (customerError) throw customerError;
       }
 
-      if (customerProfile || profile) {
+      if (resolvedProfileId) {
+        const notesPayload = JSON.stringify({
+          bio: form.bio.trim() || null,
+          parents: {
+            father_name: form.father_name.trim(),
+            mother_name: form.mother_name.trim(),
+            parent_phone: form.parent_phone.trim(),
+            parent_email: form.parent_email.trim(),
+            parent_address: form.parent_address.trim(),
+          },
+        });
+
         const dataPayload = {
           preferred_contact_method: form.preferred_contact_method,
           customer_status: form.customer_status,
@@ -141,17 +245,17 @@ export function ProfilePage() {
           x_url: form.x_url.trim() || null,
           instagram_url: form.instagram_url.trim() || null,
           telegram_url: form.telegram_url.trim() || null,
-          notes: form.bio.trim() || null,
+          notes: notesPayload,
         };
 
         if (customerProfile) {
           const { error: customerUpdateError } = await supabase.from('customer_profiles').update(dataPayload).eq('id', customerProfile.id);
           if (customerUpdateError) throw customerUpdateError;
-        } else if (profile) {
+        } else {
           const { data: createdCustomerProfile } = await supabase
             .from('customer_profiles')
             .insert({
-              profile_id: profile.id,
+              profile_id: resolvedProfileId,
               ...dataPayload,
             })
             .select('id')
@@ -161,22 +265,22 @@ export function ProfilePage() {
         }
       }
 
-      if (profile && (form.address_line || form.city || form.country)) {
+      if (resolvedProfileId && (form.address_line || form.city || form.country)) {
         const { data: existingAddress } = await supabase
           .from('addresses')
           .select('*')
-          .eq('profile_id', profile.id)
+          .eq('profile_id', resolvedProfileId)
           .eq('address_type', 'home')
           .maybeSingle();
 
         const addressPayload = {
-          profile_id: profile.id,
+          profile_id: resolvedProfileId,
           address_type: 'home',
-          address_line: form.address_line.trim() || profile.address_line || 'N/A',
-          city: form.city.trim() || profile.city || 'N/A',
-          state: form.state.trim() || profile.state || null,
-          country: form.country.trim() || profile.country || 'NG',
-          postal_code: form.postal_code.trim() || profile.postal_code || null,
+          address_line: form.address_line.trim() || profile?.address_line || 'N/A',
+          city: form.city.trim() || profile?.city || 'N/A',
+          state: form.state.trim() || profile?.state || null,
+          country: form.country.trim() || profile?.country || 'NG',
+          postal_code: form.postal_code.trim() || profile?.postal_code || null,
           is_default: true,
         };
 
@@ -220,9 +324,9 @@ export function ProfilePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: '50%',
+              width: 84,
+              height: 84,
+              borderRadius: 24,
               background: 'linear-gradient(135deg, var(--clr-blue), var(--clr-green))',
               display: 'flex',
               alignItems: 'center',
@@ -234,14 +338,17 @@ export function ProfilePage() {
               border: '2px solid rgba(255,255,255,0.15)',
             }}
           >
-            <img
-              src={form.profile_picture_url || '/logo.jpg'}
-              alt="Profile"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            {form.profile_picture_url ? (
+              <img
+                src={form.profile_picture_url}
+                alt="Profile"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <span style={{ fontSize: '2rem', lineHeight: 1 }}>{fallbackAvatar}</span>
+            )}
           </div>
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Customer profile</div>
             <h2 style={{ fontSize: '1.25rem', margin: '4px 0 0' }}>{displayName}</h2>
             <p style={{ margin: '6px 0 0', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>{form.email || user?.email || 'No email linked'}</p>
           </div>
@@ -326,6 +433,30 @@ export function ProfilePage() {
                       <option value="vip">VIP</option>
                       <option value="suspended">Suspended</option>
                     </select>
+                  </label>
+
+                  <div style={{ gridColumn: '1 / -1', marginTop: 4, marginBottom: 2, fontWeight: 700, fontSize: '0.875rem', color: 'var(--clr-white)' }}>
+                    Parents Information
+                  </div>
+                  <label className="field">
+                    <span>Father's Name</span>
+                    <input className="input" value={form.father_name} onChange={(e) => setForm({ ...form, father_name: e.target.value })} />
+                  </label>
+                  <label className="field">
+                    <span>Mother's Name</span>
+                    <input className="input" value={form.mother_name} onChange={(e) => setForm({ ...form, mother_name: e.target.value })} />
+                  </label>
+                  <label className="field">
+                    <span>Parent Phone</span>
+                    <input className="input" value={form.parent_phone} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} />
+                  </label>
+                  <label className="field">
+                    <span>Parent Email</span>
+                    <input className="input" type="email" value={form.parent_email} onChange={(e) => setForm({ ...form, parent_email: e.target.value })} />
+                  </label>
+                  <label className="field" style={{ gridColumn: '1 / -1' }}>
+                    <span>Parent Address</span>
+                    <input className="input" value={form.parent_address} onChange={(e) => setForm({ ...form, parent_address: e.target.value })} />
                   </label>
                 </div>
               </GlassCard>

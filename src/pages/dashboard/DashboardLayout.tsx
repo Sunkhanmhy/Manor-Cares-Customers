@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../../components/Sidebar';
 import { Topbar } from '../../components/Topbar';
+import { logPublicMetric, metricsEnabled } from '../../lib/publicMetrics';
 
 const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard Overview',
@@ -18,14 +19,42 @@ const TITLES: Record<string, string> = {
 
 export function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const persisted = window.localStorage.getItem('mc_dashboard_theme');
+    return persisted === 'light' ? 'light' : 'dark';
+  });
   const { pathname } = useLocation();
   const title = TITLES[pathname] ?? 'Dashboard';
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('mc_dashboard_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!metricsEnabled) return;
+
+    void logPublicMetric('usage', 1, { route: pathname, source: 'dashboard' });
+
+    if (pathname === '/dashboard/book') {
+      void logPublicMetric('booking_requested', 1, { route: pathname });
+    }
+
+    if (pathname === '/dashboard/bookings') {
+      void logPublicMetric('booking_executed', 1, { route: pathname });
+    }
+  }, [pathname]);
 
   return (
     <div className="dashboard-shell">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="dashboard-main">
-        <Topbar title={title} onMenuClick={() => setMenuOpen((v) => !v)} />
+        <Topbar
+          title={title}
+          onMenuClick={() => setMenuOpen((v) => !v)}
+          theme={theme}
+          onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+        />
         <main className="dashboard-content">
           <Outlet />
         </main>

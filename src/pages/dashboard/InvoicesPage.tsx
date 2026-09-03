@@ -2,14 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
-import { EmptyState } from '../../components/EmptyState';
-import Icon from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import type { Payment } from '../../types/database';
 
 export function InvoicesPage() {
-  const { customerProfile } = useAuth();
+  const { customerProfile, profile, user } = useAuth();
   const [transactions, setTransactions] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | Payment['payment_status']>('all');
@@ -17,10 +15,15 @@ export function InvoicesPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [resolvedCustomerId, setResolvedCustomerId] = useState<number | null>(customerProfile?.id ?? null);
 
   const loadTransactions = useCallback(async () => {
-    if (!customerProfile) {
+    const authEmail = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+
+    if (!authEmail) {
       setTransactions([]);
+      setTotalCount(0);
+      setResolvedCustomerId(null);
       setLoading(false);
       return;
     }
@@ -29,10 +32,36 @@ export function InvoicesPage() {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
+    const { data: profileRow } = await supabase.from('profiles').select('id').ilike('email', authEmail).maybeSingle();
+
+    if (!profileRow?.id) {
+      setTransactions([]);
+      setTotalCount(0);
+      setResolvedCustomerId(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data: customerRow } = await supabase
+      .from('customer_profiles')
+      .select('id')
+      .eq('profile_id', profileRow.id)
+      .maybeSingle();
+
+    const customerId = customerRow?.id ?? customerProfile?.id ?? null;
+    setResolvedCustomerId(customerId);
+
+    if (!customerId) {
+      setTransactions([]);
+      setTotalCount(0);
+      setLoading(false);
+      return;
+    }
+
     let query = supabase
       .from('payments')
       .select('*', { count: 'exact' })
-      .eq('customer_id', customerProfile.id)
+      .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -55,16 +84,16 @@ export function InvoicesPage() {
     setTransactions((data as Payment[]) ?? []);
     setTotalCount(count ?? null);
     setLoading(false);
-  }, [customerProfile, methodFilter, page, pageSize, statusFilter]);
+  }, [customerProfile?.id, methodFilter, page, pageSize, profile?.email, statusFilter, user?.email]);
 
   useEffect(() => {
     void loadTransactions();
   }, [loadTransactions]);
 
   useEffect(() => {
-    if (!customerProfile) return;
+    if (!resolvedCustomerId) return;
 
-    const channel = supabase.channel(`customer-payments-${customerProfile.id}`);
+    const channel = supabase.channel(`customer-payments-${resolvedCustomerId}`);
 
     channel
       .on(
@@ -73,7 +102,7 @@ export function InvoicesPage() {
           event: '*',
           schema: 'public',
           table: 'payments',
-          filter: `customer_id=eq.${customerProfile.id}`,
+          filter: `customer_id=eq.${resolvedCustomerId}`,
         },
         () => {
           void loadTransactions();
@@ -84,7 +113,7 @@ export function InvoicesPage() {
     return () => {
       void channel.unsubscribe();
     };
-  }, [customerProfile, loadTransactions]);
+  }, [loadTransactions, resolvedCustomerId]);
 
   const uniqueMethods = Array.from(new Set(transactions.map((item) => item.payment_method).filter(Boolean))) as string[];
 
@@ -134,42 +163,46 @@ export function InvoicesPage() {
       </GlassCard>
 
       <GlassCard style={{ padding: 0 }}>
-        {loading ? (
-          <div style={{ padding: 30, color: 'var(--text-muted)' }}>Loading transactions…</div>
-        ) : transactions.length === 0 ? (
-          <EmptyState icon={<Icon name="invoice" size={40} />} title="No data available. Update your record, now!" message="Your payment and transaction history will appear here." />
-        ) : (
-          <div className="scroll-x">
-            <table className="table-clean">
-              <thead>
+        <div className="scroll-x">
+          <table className="table-clean">
+            <thead>
+              <tr>
+                <th>S/No.</th>
+                <th>Payment Details</th>
+                <th>Payment Date</th>
+                <th>Payment Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th>Reference</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Description</th>
+                  <td colSpan={4} style={{ color: 'var(--text-muted)', padding: '18px 14px' }}>Loading transactions...</td>
                 </tr>
-              </thead>
-              <tbody>
-                {transactions.map((entry) => (
+              ) : transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '18px 14px' }}>
+                    No data available. Update your record, now!
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((entry, index) => (
                   <tr key={entry.id}>
-                    <td>{entry.payment_reference}</td>
-                    <td>{formatCurrency(Number(entry.amount), entry.currency)}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{entry.payment_method ?? '—'}</td>
+                    <td>{(page - 1) * pageSize + index + 1}</td>
                     <td>
-                      <StatusBadge status={entry.payment_status} kind="payment" />
+                      <div style={{ fontWeight: 700 }}>{formatCurrency(Number(entry.amount), entry.currency)}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Ref: {entry.payment_reference}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', textTransform: 'capitalize' }}>
+                        Method: {entry.payment_method ?? 'N/A'}
+                      </div>
                     </td>
-                    <td>{formatDateTime(entry.paid_at ?? entry.created_at).split(',')[0]}</td>
-                    <td>{formatDateTime(entry.paid_at ?? entry.created_at).split(',')[1]?.trim() ?? '—'}</td>
-                    <td>{entry.payment_method ? `${entry.payment_method} payment for service checkout` : 'Customer payment transaction'}</td>
+                    <td>{formatDateTime(entry.paid_at ?? entry.created_at)}</td>
+                    <td><StatusBadge status={entry.payment_status} kind="payment" /></td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </GlassCard>
 
       {!loading && transactions.length > 0 && (
