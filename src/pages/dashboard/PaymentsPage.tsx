@@ -5,6 +5,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import Icon from '../../components/Icon';
 import { formatCurrency } from '../../lib/format';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Payment } from '../../types/database';
 
 type PrivatePropertyCalc = {
@@ -169,7 +170,13 @@ export function PaymentsPage() {
 
   useEffect(() => {
     async function load() {
-      if (!customerProfile) {
+      const identity = await resolveEmailScopedIdentity({
+        email: getNormalizedAuthEmail(user?.email, profile?.email),
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
+
+      if (!identity.customerId) {
         setLoading(false);
         return;
       }
@@ -177,7 +184,7 @@ export function PaymentsPage() {
       const { data } = await supabase
         .from('payments')
         .select('*')
-        .eq('customer_id', customerProfile.id)
+        .eq('customer_id', identity.customerId)
         .order('created_at', { ascending: false });
 
       setPayments((data as Payment[]) ?? []);
@@ -186,7 +193,7 @@ export function PaymentsPage() {
     }
 
     void load();
-  }, [customerProfile, profile, user, customerName]);
+  }, [customerProfile?.id, customerName, profile?.id, profile?.email, user?.email]);
 
   const totalPaid = payments.filter((p) => p.payment_status === 'successful').reduce((sum, p) => sum + Number(p.amount), 0);
   const pending = payments.filter((p) => p.payment_status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0);
@@ -204,14 +211,20 @@ export function PaymentsPage() {
   const formatUsd = (amount: number) => formatCurrency(amount, 'USD');
 
   async function handleCheckout(type: 'private' | 'public', total: number, setMessage: (message: string) => void) {
-    if (!customerProfile) {
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) {
       setMessage('Customer profile is not ready. Please refresh and sign in again.');
       return;
     }
 
     const paymentReference = `PAY-${type.toUpperCase()}-${Date.now()}`;
     const { error } = await supabase.from('payments').insert({
-      customer_id: customerProfile.id,
+      customer_id: identity.customerId,
       booking_id: null,
       payment_reference: paymentReference,
       amount: total,

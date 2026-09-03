@@ -7,6 +7,7 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { Spinner } from '../../components/Spinner';
 import { formatDate } from '../../lib/format';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Booking, ServiceReview } from '../../types/database';
 
 function Stars({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
@@ -29,7 +30,7 @@ function Stars({ value, onChange }: { value: number; onChange?: (v: number) => v
 }
 
 export function ReviewsPage() {
-  const { customerProfile } = useAuth();
+  const { customerProfile, profile, user } = useAuth();
   const toast = useToast();
 
   const [reviews, setReviews] = useState<ServiceReview[]>([]);
@@ -41,18 +42,25 @@ export function ReviewsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   async function load() {
-    if (!customerProfile) return;
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) return;
+
     setLoading(true);
     const [reviewsRes, completedRes] = await Promise.all([
       supabase
         .from('service_reviews')
         .select('*, bookings(*, cleaning_services(*))')
-        .eq('customer_id', customerProfile.id)
+        .eq('customer_id', identity.customerId)
         .order('created_at', { ascending: false }),
       supabase
         .from('bookings')
         .select('*, cleaning_services(*)')
-        .eq('customer_id', customerProfile.id)
+        .eq('customer_id', identity.customerId)
         .eq('booking_status', 'completed'),
     ]);
 
@@ -63,16 +71,25 @@ export function ReviewsPage() {
   }
 
   useEffect(() => {
-    load();
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerProfile]);
+  }, [customerProfile?.id, profile?.id, profile?.email, user?.email]);
 
   async function handleSubmitReview(bookingId: number) {
-    if (!customerProfile || submitting) return;
+    if (submitting) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) return;
+
     setSubmitting(true);
     try {
       const { error } = await supabase.from('service_reviews').insert({
-        customer_id: customerProfile.id,
+        customer_id: identity.customerId,
         booking_id: bookingId,
         rating,
         review: reviewText.trim() || null,

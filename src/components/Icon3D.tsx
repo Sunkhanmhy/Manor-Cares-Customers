@@ -20,7 +20,11 @@ export type IconName =
   | 'default'
   | 'menu'
   | 'bell'
-  | 'lock';
+  | 'lock'
+  | 'home'
+  | 'building'
+  | 'office'
+  | 'star';
 
 function BaseWrapper({ children, size = 24 }: { children: React.ReactNode; size?: number }) {
   return (
@@ -34,8 +38,35 @@ export function Icon3D({ name, size = 24 }: { name: IconName | string; size?: nu
   const n = (name || 'default') as IconName;
   const commonProps = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', xmlns: 'http://www.w3.org/2000/svg' } as any;
 
-  // Flat icons: use `currentColor` for fills/strokes so CSS forces white
+  // Flat icons: use `currentColor` so each icon can inherit themed or explicit colors.
   switch (n) {
+    case 'home':
+      return (
+        <BaseWrapper size={size}>
+          <svg {...commonProps}>
+            <path d="M3 11.5L12 4l9 7.5v8.5a1 1 0 0 1-1 1h-5.5v-5.5h-5V21H4a1 1 0 0 1-1-1z" fill="currentColor" opacity="0.12" />
+            <path d="M8.5 21v-5.5h7V21" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.95" />
+          </svg>
+        </BaseWrapper>
+      );
+    case 'building':
+    case 'office':
+      return (
+        <BaseWrapper size={size}>
+          <svg {...commonProps}>
+            <rect x="4" y="3" width="16" height="18" rx="1.8" fill="currentColor" opacity="0.12" />
+            <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M11 21v-4h2v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.95" />
+          </svg>
+        </BaseWrapper>
+      );
+    case 'star':
+      return (
+        <BaseWrapper size={size}>
+          <svg {...commonProps}>
+            <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8z" fill="currentColor" opacity="0.14" />
+          </svg>
+        </BaseWrapper>
+      );
     case 'user':
       return (
         <BaseWrapper size={size}>

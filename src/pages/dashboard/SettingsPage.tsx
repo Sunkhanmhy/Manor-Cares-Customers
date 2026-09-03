@@ -5,10 +5,11 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 import { EmptyState } from '../../components/EmptyState';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { NotificationPreferences } from '../../types/database';
 
 export function SettingsPage() {
-  const { profile, customerProfile, refreshProfile } = useAuth();
+  const { profile, customerProfile, refreshProfile, user } = useAuth();
   const toast = useToast();
 
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
@@ -20,17 +21,48 @@ export function SettingsPage() {
 
   useEffect(() => {
     async function load() {
-      if (!profile || !customerProfile) return;
-      const { data } = await supabase.from('notification_preferences').select('*').eq('profile_id', profile.id).maybeSingle();
+      const identity = await resolveEmailScopedIdentity({
+        email: getNormalizedAuthEmail(user?.email, profile?.email),
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
+
+      if (!identity.profileId) return;
+
+      const { data } = await supabase.from('notification_preferences').select('*').eq('profile_id', identity.profileId).maybeSingle();
       setPrefs(data as NotificationPreferences);
-      setPreferredContact(customerProfile.preferred_contact_method);
+
+      if (identity.customerId) {
+        const { data: customerRow } = await supabase
+          .from('customer_profiles')
+          .select('preferred_contact_method')
+          .eq('id', identity.customerId)
+          .maybeSingle();
+
+        setPreferredContact(customerRow?.preferred_contact_method ?? customerProfile?.preferred_contact_method ?? 'email');
+      } else {
+        setPreferredContact(customerProfile?.preferred_contact_method ?? 'email');
+      }
+
       setLoading(false);
     }
-    load();
-  }, [profile, customerProfile]);
+    void load();
+  }, [customerProfile, profile, user?.email]);
 
   async function handleSave() {
-    if (!profile || !customerProfile || !prefs || saving) return;
+    if (!prefs || saving) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.profileId || !identity.customerId) {
+      toast.error('Your account is not ready yet. Please refresh and try again.');
+      return;
+    }
+
     setSaving(true);
     try {
       const [prefsRes, custRes] = await Promise.all([
@@ -41,8 +73,8 @@ export function SettingsPage() {
             sms_notifications: prefs.sms_notifications,
             marketing_notifications: prefs.marketing_notifications,
           })
-          .eq('profile_id', profile.id),
-        supabase.from('customer_profiles').update({ preferred_contact_method: preferredContact }).eq('id', customerProfile.id),
+          .eq('profile_id', identity.profileId),
+        supabase.from('customer_profiles').update({ preferred_contact_method: preferredContact }).eq('id', identity.customerId),
       ]);
       if (prefsRes.error || custRes.error) throw prefsRes.error ?? custRes.error;
       await refreshProfile();

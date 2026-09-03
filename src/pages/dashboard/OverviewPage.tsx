@@ -8,6 +8,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import Icon from '../../components/Icon';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { fetchPublicMetricsEvents, logPublicMetric, metricsEnabled, subscribePublicMetrics } from '../../lib/publicMetrics';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Booking } from '../../types/database';
 
 interface OverviewStats {
@@ -222,23 +223,30 @@ export function OverviewPage() {
   }, []);
 
   useEffect(() => {
-    if (!customerProfile) {
-      setStats({
-        upcomingBooking: null,
-        lastCompleted: null,
-        outstandingBalance: 0,
-        totalBookings: 0,
-        activeBookings: 0,
-        completedBookings: 0,
-      });
-      setLoading(false);
-      return;
-    }
-    const customerId = customerProfile.id;
-
     let active = true;
 
     async function load() {
+      const identity = await resolveEmailScopedIdentity({
+        email: getNormalizedAuthEmail(user?.email, profile?.email),
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
+
+      if (!identity.customerId) {
+        if (!active) return;
+        setStats({
+          upcomingBooking: null,
+          lastCompleted: null,
+          outstandingBalance: 0,
+          totalBookings: 0,
+          activeBookings: 0,
+          completedBookings: 0,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const customerId = identity.customerId;
       const today = new Date().toISOString().slice(0, 10);
 
       const [upcomingRes, lastCompletedRes, invoicesRes, totalRes, activeRes, completedRes] = await Promise.all([
@@ -285,7 +293,7 @@ export function OverviewPage() {
     return () => {
       active = false;
     };
-  }, [customerProfile]);
+  }, [customerProfile?.id, profile?.id, profile?.email, user?.email]);
 
   useEffect(() => {
     if (!metricsEnabled) return;
