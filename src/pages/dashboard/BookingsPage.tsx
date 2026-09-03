@@ -31,7 +31,12 @@ export function BookingsPage() {
   const [actionBusy, setActionBusy] = useState<'cancel' | 'delete' | 'rebook' | null>(null);
 
   async function load() {
-    if (!customerProfile) return;
+    if (!customerProfile) {
+      setBookings([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const { data } = await supabase
       .from('bookings')
@@ -135,7 +140,7 @@ export function BookingsPage() {
     const visibleSelectedCount = sectionBookings.filter((booking) => selectedIds[booking.id]).length;
 
     return (
-      <GlassCard style={{ padding: 18 }} strong>
+      <GlassCard style={{ padding: 18, minHeight: 240 }} strong>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name={isPrivate ? 'home' : 'office'} size={18} />
@@ -178,8 +183,8 @@ export function BookingsPage() {
           </div>
         )}
 
-        <div className="scroll-x">
-          <table className="table-clean">
+        <div className="scroll-x" style={{ display: 'block', width: '100%' }}>
+          <table className="table-clean" style={{ minWidth: 640 }}>
             <thead>
               <tr>
                 <th style={{ width: 32 }}>
