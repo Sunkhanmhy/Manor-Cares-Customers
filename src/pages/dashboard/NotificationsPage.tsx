@@ -6,6 +6,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { formatDateTime } from '../../lib/format';
 import type { AppNotification, NotificationType } from '../../types/database';
 import Icon from '../../components/Icon';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 
 const PAGE_SIZE = 15;
 const ICONS: Record<NotificationType, string> = {
@@ -20,19 +21,25 @@ const ICONS: Record<NotificationType, string> = {
 };
 
 export function NotificationsPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { refreshUnreadCount } = useNotifications();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
   async function load() {
-    if (!profile) return;
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+
+    if (!identity.profileId) return;
+
     setLoading(true);
     const { data } = await supabase
       .from('notifications')
       .select('*')
-      .eq('profile_id', profile.id)
+      .eq('profile_id', identity.profileId)
       .order('created_at', { ascending: false });
     setNotifications((data as AppNotification[]) ?? []);
     setLoading(false);
@@ -41,49 +48,80 @@ export function NotificationsPage() {
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile]);
+  }, [profile?.id, profile?.email, user?.email]);
 
   useEffect(() => {
     if (!profile) return;
 
-    const channel = supabase
-      .channel(`customer-notifications-${profile.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications', filter: `profile_id=eq.${profile.id}` },
-        (payload) => {
-          const incoming = payload.new as AppNotification | undefined;
+    const authEmail = getNormalizedAuthEmail(user?.email, profile?.email);
+    if (!authEmail) return;
 
-          setNotifications((prev) => {
-            if (payload.eventType === 'INSERT' && incoming) {
-              return [incoming, ...prev.filter((item) => item.id !== incoming.id)];
-            }
-            if (payload.eventType === 'UPDATE' && incoming) {
-              return prev.map((item) => (item.id === incoming.id ? { ...item, ...incoming } : item));
-            }
-            if (payload.eventType === 'DELETE') {
-              return prev.filter((item) => item.id !== (payload.old as AppNotification).id);
-            }
-            return prev;
-          });
-        }
-      )
-      .subscribe();
+    let channelRef: ReturnType<typeof supabase.channel> | null = null;
+
+    async function setup() {
+      const identity = await resolveEmailScopedIdentity({
+        email: authEmail,
+        fallbackProfileId: profile?.id ?? null,
+      });
+
+      if (!identity.profileId) return;
+
+      const channel = supabase
+        .channel(`customer-notifications-${identity.profileId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications', filter: `profile_id=eq.${identity.profileId}` },
+          (payload) => {
+            const incoming = payload.new as AppNotification | undefined;
+
+            setNotifications((prev) => {
+              if (payload.eventType === 'INSERT' && incoming) {
+                return [incoming, ...prev.filter((item) => item.id !== incoming.id)];
+              }
+              if (payload.eventType === 'UPDATE' && incoming) {
+                return prev.map((item) => (item.id === incoming.id ? { ...item, ...incoming } : item));
+              }
+              if (payload.eventType === 'DELETE') {
+                return prev.filter((item) => item.id !== (payload.old as AppNotification).id);
+              }
+              return prev;
+            });
+          }
+        )
+        .subscribe();
+
+      channelRef = channel;
+    }
+
+    void setup();
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channelRef) {
+        void supabase.removeChannel(channelRef);
+      }
     };
-  }, [profile]);
+  }, [profile, profile?.email, user?.email]);
 
   async function markAsRead(id: number) {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+    if (!identity.profileId) return;
+
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id).eq('profile_id', identity.profileId);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     refreshUnreadCount();
   }
 
   async function markAllAsRead() {
-    if (!profile) return;
-    await supabase.from('notifications').update({ is_read: true }).eq('profile_id', profile.id).eq('is_read', false);
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+    if (!identity.profileId) return;
+
+    await supabase.from('notifications').update({ is_read: true }).eq('profile_id', identity.profileId).eq('is_read', false);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     refreshUnreadCount();
   }

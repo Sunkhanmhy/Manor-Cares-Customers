@@ -6,6 +6,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import Icon from '../../components/Icon';
 import { formatDate, formatTime } from '../../lib/format';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Booking, BookingStatus } from '../../types/database';
 
 const FILTERS: Array<{ label: string; value: BookingStatus | 'all' }> = [
@@ -21,7 +22,7 @@ const PRIVATE_TYPES = new Set(['apartment', 'house', 'airbnb']);
 const PUBLIC_TYPES = new Set(['office', 'other']);
 
 export function BookingsPage() {
-  const { customerProfile } = useAuth();
+  const { customerProfile, profile, user } = useAuth();
   const toast = useToast();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -31,7 +32,13 @@ export function BookingsPage() {
   const [actionBusy, setActionBusy] = useState<'cancel' | 'delete' | 'rebook' | null>(null);
 
   async function load() {
-    if (!customerProfile) {
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) {
       setBookings([]);
       setLoading(false);
       return;
@@ -41,7 +48,7 @@ export function BookingsPage() {
     const { data } = await supabase
       .from('bookings')
       .select('*')
-      .eq('customer_id', customerProfile.id)
+      .eq('customer_id', identity.customerId)
       .order('created_at', { ascending: false });
     setBookings((data as Booking[]) ?? []);
     setLoading(false);
@@ -50,7 +57,7 @@ export function BookingsPage() {
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerProfile]);
+  }, [customerProfile?.id, profile?.id, profile?.email, user?.email]);
 
   const rowsByType = useMemo(() => {
     const privateBookings = bookings.filter((booking) => PRIVATE_TYPES.has(booking.property_type));
@@ -87,15 +94,27 @@ export function BookingsPage() {
 
   async function updateBookingStatus(ids: number[], nextStatus: BookingStatus | 'deleted') {
     if (!ids.length) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) {
+      toast.error('Your account is not ready yet. Please refresh and try again.');
+      return;
+    }
+
     setActionBusy(nextStatus === 'deleted' ? 'delete' : nextStatus === 'cancelled' ? 'cancel' : 'rebook');
 
     try {
       if (nextStatus === 'deleted') {
-        const { error } = await supabase.from('bookings').delete().in('id', ids);
+        const { error } = await supabase.from('bookings').delete().in('id', ids).eq('customer_id', identity.customerId);
         if (error) throw error;
         toast.success('Selected bookings deleted.');
       } else {
-        const { error } = await supabase.from('bookings').update({ booking_status: nextStatus }).in('id', ids);
+        const { error } = await supabase.from('bookings').update({ booking_status: nextStatus }).in('id', ids).eq('customer_id', identity.customerId);
         if (error) throw error;
         toast.success(nextStatus === 'cancelled' ? 'Selected bookings cancelled.' : 'Selected bookings rebooked.');
       }
@@ -110,20 +129,31 @@ export function BookingsPage() {
   }
 
   async function handleRowAction(id: number, action: 'cancel' | 'delete' | 'rebook') {
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) {
+      toast.error('Your account is not ready yet. Please refresh and try again.');
+      return;
+    }
+
     const target = bookings.find((booking) => booking.id === id);
     if (!target) return;
 
     try {
       if (action === 'delete') {
-        const { error } = await supabase.from('bookings').delete().eq('id', id);
+        const { error } = await supabase.from('bookings').delete().eq('id', id).eq('customer_id', identity.customerId);
         if (error) throw error;
         toast.success('Booking deleted.');
       } else if (action === 'cancel') {
-        const { error } = await supabase.from('bookings').update({ booking_status: 'cancelled' }).eq('id', id);
+        const { error } = await supabase.from('bookings').update({ booking_status: 'cancelled' }).eq('id', id).eq('customer_id', identity.customerId);
         if (error) throw error;
         toast.success('Booking cancelled.');
       } else {
-        const { error } = await supabase.from('bookings').update({ booking_status: 'pending' }).eq('id', id);
+        const { error } = await supabase.from('bookings').update({ booking_status: 'pending' }).eq('id', id).eq('customer_id', identity.customerId);
         if (error) throw error;
         toast.success('Booking rebooked and moved back to pending.');
       }

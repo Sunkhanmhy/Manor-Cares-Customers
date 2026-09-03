@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 import Icon from '../../components/Icon';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Address } from '../../types/database';
 
 const EMPTY_FORM = {
@@ -30,7 +31,7 @@ const EMPTY_FORM = {
 };
 
 export function AddressesPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const toast = useToast();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -43,12 +44,22 @@ export function AddressesPage() {
   const [deleting, setDeleting] = useState(false);
 
   async function load() {
-    if (!profile) return;
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+
+    if (!identity.profileId) {
+      setAddresses([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const { data } = await supabase
       .from('addresses')
       .select('*')
-      .eq('profile_id', profile.id)
+      .eq('profile_id', identity.profileId)
       .order('is_default', { ascending: false })
       .order('created_at', { ascending: false });
     const all = (data as Address[]) ?? [];
@@ -69,9 +80,9 @@ export function AddressesPage() {
   }
 
   useEffect(() => {
-    load();
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile]);
+  }, [profile?.id, profile?.email, user?.email]);
 
   function openAddForm() {
     setEditingId(null);
@@ -114,7 +125,17 @@ export function AddressesPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!profile || saving) return;
+    if (saving) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+
+    if (!identity.profileId) {
+      toast.error('Your account is not ready yet. Please refresh and try again.');
+      return;
+    }
 
     if (!form.address_line.trim() || !form.city.trim() || !form.country.trim()) {
       toast.error('Please fill in address, city and country.');
@@ -124,7 +145,7 @@ export function AddressesPage() {
     setSaving(true);
     try {
       const payload = {
-        profile_id: profile.id,
+        profile_id: identity.profileId,
         address_type: form.address_type,
         address_line: form.address_line.trim(),
         city: form.city.trim(),
@@ -147,7 +168,7 @@ export function AddressesPage() {
       const hasOfficeAddress = form.office_address_line.trim() && form.office_city.trim() && form.office_country.trim();
       if (hasOfficeAddress) {
         const officePayload = {
-          profile_id: profile.id,
+          profile_id: identity.profileId,
           address_type: 'work' as Address['address_type'],
           address_line: form.office_address_line.trim(),
           city: form.office_city.trim(),
@@ -178,18 +199,35 @@ export function AddressesPage() {
   }
 
   async function handleSetDefault(address: Address) {
-    if (!profile) return;
-    await supabase.from('addresses').update({ is_default: false }).eq('profile_id', profile.id);
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+
+    if (!identity.profileId) return;
+
+    await supabase.from('addresses').update({ is_default: false }).eq('profile_id', identity.profileId);
     await supabase.from('addresses').update({ is_default: true }).eq('id', address.id);
     toast.success('Default address updated.');
-    load();
+    void load();
   }
 
   async function handleDelete() {
     if (!deleteTarget) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+    });
+
+    if (!identity.profileId) {
+      toast.error('Your account is not ready yet. Please refresh and try again.');
+      return;
+    }
+
     setDeleting(true);
     try {
-      const { error } = await supabase.from('addresses').delete().eq('id', deleteTarget.id);
+      const { error } = await supabase.from('addresses').delete().eq('id', deleteTarget.id).eq('profile_id', identity.profileId);
       if (error) throw error;
       toast.success('Address removed.');
       setDeleteTarget(null);

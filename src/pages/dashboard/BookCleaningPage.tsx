@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 import Icon from '../../components/Icon';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Address, CleaningService } from '../../types/database';
 
 type BookingFormMode = 'private' | 'public';
@@ -125,7 +126,13 @@ export function BookCleaningPage() {
     let active = true;
 
     async function load() {
-      const profileId = profile?.id;
+      const identity = await resolveEmailScopedIdentity({
+        email: getNormalizedAuthEmail(user?.email, profile?.email),
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
+
+      const profileId = identity.profileId;
       const [addressRes, serviceRes] = await Promise.all([
         profileId
           ? supabase.from('addresses').select('*').eq('profile_id', profileId).order('is_default', { ascending: false }).order('created_at', { ascending: false })
@@ -147,7 +154,7 @@ export function BookCleaningPage() {
       const autoFill = {
         customer_name: fullName || user?.email?.split('@')[0] || 'Customer',
         phone: profile?.phone ?? '',
-        email: user?.email ?? profile?.email ?? '',
+        email: identity.email || user?.email || profile?.email || '',
         address_line: defaultAddressLine,
         city: defaultCity,
         state: defaultState,
@@ -166,7 +173,7 @@ export function BookCleaningPage() {
     return () => {
       active = false;
     };
-  }, [profile, user]);
+  }, [customerProfile?.id, profile, user]);
 
   const formatSummaryText = (mode: BookingFormMode, form: PrivatePropertyForm | PublicPropertyForm) => {
     if (mode === 'private') {
@@ -204,7 +211,13 @@ export function BookCleaningPage() {
   };
 
   async function submitBooking(mode: BookingFormMode) {
-    if (!customerProfile) {
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId || !identity.profileId) {
       toast.error('Your customer profile is not ready yet. Please refresh your session and try again.');
       return;
     }
@@ -234,7 +247,7 @@ export function BookCleaningPage() {
 
       const bookingPayload: any = mode === 'private'
         ? {
-            customer_id: customerProfile.id,
+          customer_id: identity.customerId,
             service_id: selectedService.id,
             booking_date: privateFormData.booking_date,
             booking_time: privateFormData.booking_time,
@@ -254,7 +267,7 @@ export function BookCleaningPage() {
             booking_status: 'pending',
           }
         : {
-            customer_id: customerProfile.id,
+          customer_id: identity.customerId,
             service_id: selectedService.id,
             booking_date: publicFormData.booking_date,
             booking_time: publicFormData.booking_time,
@@ -280,7 +293,7 @@ export function BookCleaningPage() {
       if (error) throw error;
 
       await supabase.from('notifications').insert({
-        profile_id: profile!.id,
+        profile_id: identity.profileId,
         type: 'booking_confirmed',
         title: mode === 'private' ? 'Private cleaning request received' : 'Public cleaning request received',
         message: `${form.customer_name}, your ${mode} cleaning request has been submitted successfully.`,

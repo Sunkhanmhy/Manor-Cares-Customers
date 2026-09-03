@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 import Icon from '../../components/Icon';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 
 const defaultProfileForm = {
   first_name: '',
@@ -92,13 +93,21 @@ export function ProfilePage() {
   }, [profile, customerProfile, user]);
 
   useEffect(() => {
-    const email = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+    const email = getNormalizedAuthEmail(user?.email, profile?.email);
     if (!email) return;
 
     let active = true;
 
     async function hydrateFromDatabase() {
-      const { data: profileRow } = await supabase.from('profiles').select('*').ilike('email', email).maybeSingle();
+      const identity = await resolveEmailScopedIdentity({
+        email,
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
+
+      if (!identity.profileId) return;
+
+      const { data: profileRow } = await supabase.from('profiles').select('*').eq('id', identity.profileId).maybeSingle();
 
       if (!active) return;
 
@@ -107,7 +116,7 @@ export function ProfilePage() {
       const { data: customerRow } = await supabase
         .from('customer_profiles')
         .select('*')
-        .eq('profile_id', profileRow.id)
+        .eq('profile_id', identity.profileId)
         .maybeSingle();
 
       let parentInfo: Record<string, string> = {};
@@ -161,7 +170,7 @@ export function ProfilePage() {
     return () => {
       active = false;
     };
-  }, [user?.email, profile?.email]);
+  }, [customerProfile?.id, profile?.email, profile?.id, user?.email]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -193,9 +202,13 @@ export function ProfilePage() {
       };
 
       const lookupEmail = (user?.email ?? form.email).trim().toLowerCase();
-      const { data: existingByEmail } = await supabase.from('profiles').select('id').ilike('email', lookupEmail).maybeSingle();
+      const identity = await resolveEmailScopedIdentity({
+        email: lookupEmail,
+        fallbackProfileId: profile?.id ?? null,
+        fallbackCustomerId: customerProfile?.id ?? null,
+      });
 
-      let resolvedProfileId = profile?.id ?? existingByEmail?.id ?? null;
+      let resolvedProfileId = identity.profileId;
 
       if (resolvedProfileId) {
         const { error: profileError } = await supabase.from('profiles').update(profilePayload).eq('id', resolvedProfileId);
@@ -249,7 +262,8 @@ export function ProfilePage() {
         };
 
         if (customerProfile) {
-          const { error: customerUpdateError } = await supabase.from('customer_profiles').update(dataPayload).eq('id', customerProfile.id);
+          const targetCustomerId = identity.customerId ?? customerProfile.id;
+          const { error: customerUpdateError } = await supabase.from('customer_profiles').update(dataPayload).eq('id', targetCustomerId);
           if (customerUpdateError) throw customerUpdateError;
         } else {
           const { data: createdCustomerProfile } = await supabase

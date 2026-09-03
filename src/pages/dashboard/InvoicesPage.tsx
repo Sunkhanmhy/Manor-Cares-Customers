@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import { formatCurrency, formatDateTime } from '../../lib/format';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Payment } from '../../types/database';
 
 export function InvoicesPage() {
@@ -18,7 +19,7 @@ export function InvoicesPage() {
   const [resolvedCustomerId, setResolvedCustomerId] = useState<number | null>(customerProfile?.id ?? null);
 
   const loadTransactions = useCallback(async () => {
-    const authEmail = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+    const authEmail = getNormalizedAuthEmail(user?.email, profile?.email);
 
     if (!authEmail) {
       setTransactions([]);
@@ -32,23 +33,13 @@ export function InvoicesPage() {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const { data: profileRow } = await supabase.from('profiles').select('id').ilike('email', authEmail).maybeSingle();
+    const identity = await resolveEmailScopedIdentity({
+      email: authEmail,
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
 
-    if (!profileRow?.id) {
-      setTransactions([]);
-      setTotalCount(0);
-      setResolvedCustomerId(null);
-      setLoading(false);
-      return;
-    }
-
-    const { data: customerRow } = await supabase
-      .from('customer_profiles')
-      .select('id')
-      .eq('profile_id', profileRow.id)
-      .maybeSingle();
-
-    const customerId = customerRow?.id ?? customerProfile?.id ?? null;
+    const customerId = identity.customerId;
     setResolvedCustomerId(customerId);
 
     if (!customerId) {

@@ -392,6 +392,31 @@ select.input option {
   color: #0f1f33;
 }
 
+:root[data-theme='light'] .dashboard-content .input,
+:root[data-theme='light'] .dashboard-content select.input,
+:root[data-theme='light'] .dashboard-content textarea.input {
+  border: 2px solid rgba(13, 60, 107, 0.35);
+}
+
+:root[data-theme='light'] .dashboard-content .input:focus,
+:root[data-theme='light'] .dashboard-content select.input:focus,
+:root[data-theme='light'] .dashboard-content textarea.input:focus {
+  border: 2px solid var(--clr-blue);
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.16);
+}
+
+:root[data-theme='light'] .dashboard-content .table-clean {
+  border: 2px solid rgba(13, 60, 107, 0.35);
+}
+
+:root[data-theme='light'] .dashboard-content .table-clean th {
+  border-bottom: 2px solid rgba(13, 60, 107, 0.28);
+}
+
+:root[data-theme='light'] .dashboard-content .table-clean td {
+  border-bottom: 1.5px solid rgba(13, 60, 107, 0.22);
+}
+
 :root[data-theme='light'] .input::placeholder {
   color: rgba(15, 31, 51, 0.45);
 }
@@ -454,9 +479,9 @@ select.input option {
 .icon,
 svg.icon,
 i.fa {
-  color: var(--clr-white) !important;
-  fill: var(--clr-white) !important;
-  filter: var(--icon-filter, brightness(0) invert(1)) !important;
+  color: var(--icon-color, var(--clr-white)) !important;
+  fill: currentColor !important;
+  filter: var(--icon-filter, none) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -465,10 +490,10 @@ i.fa {
 
 /* Ensure standalone SVG icons inherit color and use currentColor for fill/stroke */
 svg.icon {
-  color: var(--clr-white) !important;
+  color: var(--icon-color, var(--clr-white)) !important;
   fill: currentColor !important;
   stroke: currentColor !important;
-  filter: var(--icon-filter, brightness(0) invert(1)) !important;
+  filter: var(--icon-filter, none) !important;
 }
 
 /* Make SVG strokes and simple shapes appear bolder to match "bold" icon requirement */

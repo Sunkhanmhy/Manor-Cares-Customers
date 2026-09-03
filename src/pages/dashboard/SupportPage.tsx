@@ -7,6 +7,7 @@ import { SkeletonCard } from '../../components/Skeleton';
 import Icon from '../../components/Icon';
 import { Spinner } from '../../components/Spinner';
 import { formatDateTime } from '../../lib/format';
+import { getNormalizedAuthEmail, resolveEmailScopedIdentity } from '../../lib/emailScopedIdentity';
 import type { Address, SupportTicket, TicketPriority } from '../../types/database';
 
 function extractTicketMeta(description: string) {
@@ -55,7 +56,7 @@ export function SupportPage() {
   }, [profile, user]);
 
   async function load() {
-    const authEmail = (user?.email ?? profile?.email ?? '').trim().toLowerCase();
+    const authEmail = getNormalizedAuthEmail(user?.email, profile?.email);
 
     if (!authEmail) {
       setTickets([]);
@@ -65,9 +66,13 @@ export function SupportPage() {
       return;
     }
 
-    const { data: profileRow } = await supabase.from('profiles').select('*').ilike('email', authEmail).maybeSingle();
+    const identity = await resolveEmailScopedIdentity({
+      email: authEmail,
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: customerProfile?.id ?? null,
+    });
 
-    const profileId = profileRow?.id ?? profile?.id ?? null;
+    const profileId = identity.profileId;
     if (!profileId) {
       setTickets([]);
       setBookingOptions([]);
@@ -76,8 +81,7 @@ export function SupportPage() {
       return;
     }
 
-    const { data: customerRow } = await supabase.from('customer_profiles').select('id').eq('profile_id', profileId).maybeSingle();
-    const customerId = customerRow?.id ?? customerProfile?.id ?? null;
+    const customerId = identity.customerId;
 
     setResolvedCustomerId(customerId);
 
@@ -106,8 +110,8 @@ export function SupportPage() {
     setTicketForm((prev) => ({
       ...prev,
       full_name: activeCustomerName,
-      phone: profileRow.phone ?? profile?.phone ?? '',
-      email: profileRow.email ?? profile?.email ?? user?.email ?? '',
+      phone: profile?.phone ?? '',
+      email: authEmail || profile?.email || user?.email || '',
       address: defaultAddressText,
     }));
 
@@ -116,8 +120,8 @@ export function SupportPage() {
     setReviewForm((prev) => ({
       ...prev,
       full_name: activeCustomerName,
-      phone: profileRow.phone ?? profile?.phone ?? '',
-      email: profileRow.email ?? profile?.email ?? user?.email ?? '',
+      phone: profile?.phone ?? '',
+      email: authEmail || profile?.email || user?.email || '',
       address: defaultAddressText,
       service_name: newestBooking?.property_type ?? 'General Service',
     }));
@@ -132,7 +136,16 @@ export function SupportPage() {
 
   async function handleTicketSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!resolvedCustomerId || submittingTicket) return;
+    if (submittingTicket) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: resolvedCustomerId ?? customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) return;
+
     if (!ticketForm.subject.trim() || !ticketForm.details.trim()) {
       toast.error('Please fill in the subject and issue details.');
       return;
@@ -142,7 +155,7 @@ export function SupportPage() {
     try {
       const descriptionText = [
         `Customer: ${ticketForm.full_name}`,
-        `Email: ${ticketForm.email}`,
+        `Email: ${identity.email || ticketForm.email}`,
         `Phone: ${ticketForm.phone}`,
         `Address: ${ticketForm.address || 'Not provided'}`,
         `Department: ${ticketForm.department}`,
@@ -151,7 +164,7 @@ export function SupportPage() {
       ].join('\n');
 
       const { error } = await supabase.from('support_tickets').insert({
-        customer_id: resolvedCustomerId,
+        customer_id: identity.customerId,
         subject: `${ticketForm.department} - ${ticketForm.subject.trim()}`,
         description: descriptionText,
         priority: ticketForm.priority,
@@ -171,7 +184,16 @@ export function SupportPage() {
 
   async function handleReviewSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!resolvedCustomerId || submittingReview) return;
+    if (submittingReview) return;
+
+    const identity = await resolveEmailScopedIdentity({
+      email: getNormalizedAuthEmail(user?.email, profile?.email),
+      fallbackProfileId: profile?.id ?? null,
+      fallbackCustomerId: resolvedCustomerId ?? customerProfile?.id ?? null,
+    });
+
+    if (!identity.customerId) return;
+
     if (!reviewForm.comments.trim()) {
       toast.error('Please leave a review comment before submitting.');
       return;
@@ -187,7 +209,7 @@ export function SupportPage() {
     try {
       const reviewText = [
         `Customer: ${reviewForm.full_name}`,
-        `Email: ${reviewForm.email}`,
+        `Email: ${identity.email || reviewForm.email}`,
         `Phone: ${reviewForm.phone}`,
         `Address: ${reviewForm.address || 'Not provided'}`,
         `Service: ${reviewForm.service_name || 'General Service'}`,
@@ -196,7 +218,7 @@ export function SupportPage() {
       ].join('\n');
 
       const { error } = await supabase.from('service_reviews').insert({
-        customer_id: resolvedCustomerId,
+        customer_id: identity.customerId,
         booking_id: bookingId,
         rating: Number(reviewForm.rating),
         review: reviewText,
