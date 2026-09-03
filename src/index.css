@@ -357,7 +357,7 @@ svg.icon,
 i.fa {
   color: var(--clr-white) !important;
   fill: var(--clr-white) !important;
-  filter: brightness(0) invert(1) !important;
+  filter: var(--icon-filter, brightness(0) invert(1)) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -369,7 +369,7 @@ svg.icon {
   color: var(--clr-white) !important;
   fill: currentColor !important;
   stroke: currentColor !important;
-  filter: brightness(0) invert(1) !important;
+  filter: var(--icon-filter, brightness(0) invert(1)) !important;
 }
 
 /* Make SVG strokes and simple shapes appear bolder to match "bold" icon requirement */

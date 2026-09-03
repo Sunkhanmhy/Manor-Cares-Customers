@@ -13,7 +13,6 @@ const TITLES: Record<string, string> = {
   '/dashboard/invoices': 'Invoices',
   '/dashboard/support': 'Support Center',
   '/dashboard/notifications': 'Notifications',
-  '/dashboard/settings': 'Settings',
   '/dashboard/security': 'Password & Security',
 };
 

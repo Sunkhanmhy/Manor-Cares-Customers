@@ -4,17 +4,16 @@ import { useNotifications } from '../context/NotificationsContext';
 import Icon from './Icon';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', end: true },
-  { to: '/dashboard/profile', label: 'My Profile', icon: 'user' },
-  { to: '/dashboard/addresses', label: 'My Addresses', icon: 'location' },
-  { to: '/dashboard/book', label: 'Book a Cleaning', icon: 'clean' },
-  { to: '/dashboard/bookings', label: 'My Bookings', icon: 'calendar' },
-  { to: '/dashboard/payments', label: 'Payments', icon: 'payments' },
-  { to: '/dashboard/invoices', label: 'Invoices', icon: 'invoice' },
-  { to: '/dashboard/support', label: 'Support', icon: 'support' },
-  { to: '/dashboard/notifications', label: 'Notifications', icon: 'notifications' },
-  { to: '/dashboard/settings', label: 'Settings', icon: 'settings' },
-  { to: '/dashboard/security', label: 'Password & Security', icon: 'security' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', color: '#22d3ee', end: true },
+  { to: '/dashboard/profile', label: 'My Profile', icon: 'user', color: '#f59e0b' },
+  { to: '/dashboard/addresses', label: 'My Addresses', icon: 'location', color: '#fb7185' },
+  { to: '/dashboard/book', label: 'Book a Cleaning', icon: 'clean', color: '#34d399' },
+  { to: '/dashboard/bookings', label: 'My Bookings', icon: 'calendar', color: '#a78bfa' },
+  { to: '/dashboard/payments', label: 'Payments', icon: 'payments', color: '#2dd4bf' },
+  { to: '/dashboard/invoices', label: 'Invoices', icon: 'invoice', color: '#60a5fa' },
+  { to: '/dashboard/support', label: 'Support', icon: 'support', color: '#f97316' },
+  { to: '/dashboard/notifications', label: 'Notifications', icon: 'notifications', color: '#facc15' },
+  { to: '/dashboard/security', label: 'Password & Security', icon: 'security', color: '#10b981' },
 ] as const;
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -66,7 +65,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               }}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
             >
-              <span aria-hidden="true"><Icon name={item.icon as string} size={20} /></span>
+              <span aria-hidden="true">
+                <Icon name={item.icon as string} size={20} color={item.color} vector />
+              </span>
               <span>{item.label}</span>
               {item.to === '/dashboard/notifications' && unreadCount > 0 && (
                 <span className="badge badge-red" style={{ marginLeft: 'auto', padding: '2px 8px' }}>

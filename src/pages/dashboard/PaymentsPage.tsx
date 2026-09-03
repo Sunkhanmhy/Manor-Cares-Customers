@@ -3,10 +3,8 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
-import { EmptyState } from '../../components/EmptyState';
 import Icon from '../../components/Icon';
-import { StatusBadge } from '../../components/StatusBadge';
-import { formatCurrency, formatDateTime } from '../../lib/format';
+import { formatCurrency } from '../../lib/format';
 import type { Payment } from '../../types/database';
 
 type PrivatePropertyCalc = {
@@ -194,6 +192,8 @@ export function PaymentsPage() {
     return Math.round(subtotal * PUBLIC_TYPE_MULTIPLIER[publicCalc.buildingCategory]);
   }, [publicCalc]);
 
+  const formatUsd = (amount: number) => formatCurrency(amount, 'USD');
+
   async function handleCheckout(type: 'private' | 'public', total: number, setMessage: (message: string) => void) {
     if (!customerProfile) {
       setMessage('Customer profile is not ready. Please refresh and sign in again.');
@@ -206,7 +206,7 @@ export function PaymentsPage() {
       booking_id: null,
       payment_reference: paymentReference,
       amount: total,
-      currency: 'NGN',
+      currency: 'USD',
       payment_method: paymentMethod,
       payment_status: 'pending',
       paid_at: null,
@@ -217,7 +217,7 @@ export function PaymentsPage() {
       return;
     }
 
-    setMessage(`Checkout synced for ${formatCurrency(total)} — reference: ${paymentReference} (${paymentMethod}).`);
+    setMessage(`Checkout synced for ${formatUsd(total)} — reference: ${paymentReference} (${paymentMethod}).`);
   }
 
   if (loading) {
@@ -232,33 +232,17 @@ export function PaymentsPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div className="stat-grid">
-        <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Paid</p>
-          <p style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(totalPaid)}</p>
-        </GlassCard>
-        <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Pending Payments</p>
-          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{formatCurrency(pending)}</p>
-        </GlassCard>
-        <GlassCard style={{ padding: 18 }}>
-          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Transactions</p>
-          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{payments.length}</p>
-        </GlassCard>
-      </div>
-
       <GlassCard style={{ padding: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Payments</p>
-            <h3 style={{ margin: '4px 0 0', fontSize: '1.1rem' }}>Standard payment plans for moderate and modern private properties</h3>
+            <h3 style={{ margin: '4px 0 0', fontSize: '1.1rem' }}>Standard General Plans</h3>
           </div>
           <div className="badge badge-blue">Customer: {customerName}</div>
         </div>
       </GlassCard>
 
       <div>
-        <h3 style={{ fontSize: '1.125rem', marginBottom: 10 }}>Standard Private Properties</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(220px, 1fr))', gap: 14 }}>
           {STANDARD_PRIVATE_PLANS.map((plan) => (
             <GlassCard key={plan.name} style={{ padding: 16 }}>
@@ -326,7 +310,7 @@ export function PaymentsPage() {
 
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 14 }}>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Estimated total</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{formatCurrency(privateTotal)}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{formatUsd(privateTotal)}</div>
             </div>
           </div>
         </GlassCard>
@@ -340,7 +324,7 @@ export function PaymentsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 10 }}>
               <span style={{ color: 'var(--text-muted)' }}>Real-time total</span>
-              <strong>{formatCurrency(privateTotal)}</strong>
+              <strong>{formatUsd(privateTotal)}</strong>
             </div>
 
             <label className="field">
@@ -416,7 +400,7 @@ export function PaymentsPage() {
 
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 14 }}>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Estimated total</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{formatCurrency(publicTotal)}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{formatUsd(publicTotal)}</div>
             </div>
           </div>
         </GlassCard>
@@ -430,7 +414,7 @@ export function PaymentsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 10 }}>
               <span style={{ color: 'var(--text-muted)' }}>Real-time total</span>
-              <strong>{formatCurrency(publicTotal)}</strong>
+              <strong>{formatUsd(publicTotal)}</strong>
             </div>
 
             <label className="field">
@@ -465,38 +449,20 @@ export function PaymentsPage() {
         </GlassCard>
       </div>
 
-      <GlassCard style={{ padding: 0 }}>
-        {payments.length === 0 ? (
-          <EmptyState icon={<Icon name="payments" size={40} />} title="No data available. Update your record, now!" message="Payments for your bookings will appear here." />
-        ) : (
-          <div className="scroll-x">
-            <table className="table-clean">
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.payment_reference}</td>
-                    <td>{formatCurrency(p.amount, p.currency)}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{p.payment_method ?? '—'}</td>
-                    <td>
-                      <StatusBadge status={p.payment_status} kind="payment" />
-                    </td>
-                    <td>{formatDateTime(p.paid_at ?? p.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </GlassCard>
+      <div className="stat-grid" style={{ marginTop: 10 }}>
+        <GlassCard style={{ padding: 18 }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Paid</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--clr-green)' }}>{formatCurrency(totalPaid, 'USD')}</p>
+        </GlassCard>
+        <GlassCard style={{ padding: 18 }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Pending Payments</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{formatCurrency(pending, 'USD')}</p>
+        </GlassCard>
+        <GlassCard style={{ padding: 18 }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--text-muted)', marginBottom: 8 }}>Total Transactions</p>
+          <p style={{ fontSize: '1.375rem', fontWeight: 700 }}>{payments.length}</p>
+        </GlassCard>
+      </div>
     </div>
   );
 }

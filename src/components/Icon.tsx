@@ -1,9 +1,40 @@
 import { useState } from 'react';
 import Icon3D from './Icon3D';
 
-export default function Icon({ name, size = 40, className = '' }: { name: string; size?: number; className?: string }) {
+export default function Icon({
+  name,
+  size = 40,
+  className = '',
+  color,
+  vector = false,
+}: {
+  name: string;
+  size?: number;
+  className?: string;
+  color?: string;
+  vector?: boolean;
+}) {
   const [errored, setErrored] = useState(false);
   const src = `/icons/${name}.svg`;
+
+  if (vector || color) {
+    return (
+      <span
+        className={className}
+        style={{
+          display: 'inline-flex',
+          width: size,
+          height: size,
+          color: color ?? 'var(--clr-white)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          ['--icon-filter' as string]: 'none',
+        }}
+      >
+        <Icon3D name={name as any} size={size} />
+      </span>
+    );
+  }
 
   if (errored) {
     return <Icon3D name={name as any} size={size} />;
