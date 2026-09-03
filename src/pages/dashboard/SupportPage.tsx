@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../lib/toast';
 import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
-import { EmptyState } from '../../components/EmptyState';
 import Icon from '../../components/Icon';
 import { Spinner } from '../../components/Spinner';
 import { formatDateTime } from '../../lib/format';
@@ -323,30 +322,45 @@ export function SupportPage() {
         </GlassCard>
       </div>
 
-      {loading ? (
-        <div className="card-grid">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+      <GlassCard style={{ padding: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <Icon name="support" size={18} />
+          <h3 style={{ margin: 0, fontSize: '1rem' }}>Submitted Enquiries & Ticket Report</h3>
         </div>
-      ) : tickets.length === 0 ? (
-        <GlassCard style={{ padding: 10 }}>
-          <EmptyState icon={<Icon name="support" size={40} />} title="No data available. Update your record, now!" message="Need help? Create a ticket and our team will assist you." />
-        </GlassCard>
-      ) : (
-        <div className="card-grid">
-          {tickets.map((t) => (
-            <GlassCard key={t.id} style={{ padding: 18 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-                <h4 style={{ fontSize: 14.5 }}>{t.subject}</h4>
-                <span className={`badge ${t.status === 'closed' ? 'badge-green' : t.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>{t.status}</span>
-              </div>
-              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8 }}>{t.description}</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDateTime(t.created_at)}</p>
-            </GlassCard>
-          ))}
-        </div>
-      )}
+
+        {loading ? (
+          <div style={{ padding: 12 }}><SkeletonCard /></div>
+        ) : tickets.length === 0 ? (
+          <div style={{ padding: '18px 12px', color: 'var(--text-muted)' }}>No data available. Update your record, now!</div>
+        ) : (
+          <div className="scroll-x">
+            <table className="table-clean">
+              <thead>
+                <tr>
+                  <th>Ticket #</th>
+                  <th>Subject</th>
+                  <th>Request Type</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td>#{ticket.id}</td>
+                    <td>{ticket.subject}</td>
+                    <td>{ticket.description.split('Request type: ')[1]?.split('\n')[0] || 'General enquiry'}</td>
+                    <td><span className={`badge ${ticket.status === 'closed' ? 'badge-green' : ticket.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>{ticket.status}</span></td>
+                    <td style={{ textTransform: 'capitalize' }}>{ticket.priority}</td>
+                    <td>{formatDateTime(ticket.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </GlassCard>
     </div>
   );
 }

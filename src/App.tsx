@@ -16,7 +16,6 @@ import { PaymentsPage } from './pages/dashboard/PaymentsPage';
 import { InvoicesPage } from './pages/dashboard/InvoicesPage';
 import { SupportPage } from './pages/dashboard/SupportPage';
 import { NotificationsPage } from './pages/dashboard/NotificationsPage';
-import { SettingsPage } from './pages/dashboard/SettingsPage';
 import { PasswordSecurityPage } from './pages/dashboard/PasswordSecurityPage';
 
 function App() {
@@ -41,7 +40,6 @@ function App() {
                   <Route path="invoices" element={<InvoicesPage />} />
                   <Route path="support" element={<SupportPage />} />
                   <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
                   <Route path="security" element={<PasswordSecurityPage />} />
                 </Route>
               </Route>
