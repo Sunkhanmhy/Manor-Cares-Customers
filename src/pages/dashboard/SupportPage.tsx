@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../lib/toast';
@@ -6,203 +6,322 @@ import { GlassCard } from '../../components/GlassCard';
 import { SkeletonCard } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import Icon from '../../components/Icon';
-import { StatusBadge } from '../../components/StatusBadge';
 import { Spinner } from '../../components/Spinner';
 import { formatDateTime } from '../../lib/format';
-import type { SupportTicket, SupportTicketMessage, TicketPriority } from '../../types/database';
+import type { Address, SupportTicket, TicketPriority } from '../../types/database';
 
 export function SupportPage() {
-  const { customerProfile, profile } = useAuth();
+  const { customerProfile, profile, user } = useAuth();
   const toast = useToast();
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TicketPriority>('normal');
-  const [submitting, setSubmitting] = useState(false);
+  const [bookingOptions, setBookingOptions] = useState<Array<{ id: number; property_type: string; property_address: string }>>([]);
 
-  const [activeTicket, setActiveTicket] = useState<SupportTicket | null>(null);
-  const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
-  const [reply, setReply] = useState('');
-  const [sendingReply, setSendingReply] = useState(false);
+  const [ticketForm, setTicketForm] = useState({
+    full_name: '',
+    phone: '',
+    email: '',
+    address: '',
+    department: 'IT Admin',
+    request_type: 'Technical Support',
+    priority: 'normal' as TicketPriority,
+    subject: '',
+    details: '',
+  });
+
+  const [reviewForm, setReviewForm] = useState({
+    full_name: '',
+    phone: '',
+    email: '',
+    address: '',
+    service_name: '',
+    rating: '5',
+    satisfaction: 'Excellent',
+    comments: '',
+  });
+
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const activeCustomerName = useMemo(() => {
+    return [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() || user?.email?.split('@')[0] || 'Customer';
+  }, [profile, user]);
 
   async function load() {
-    if (!customerProfile) return;
+    if (!customerProfile || !profile) {
+      setTickets([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    const { data } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .eq('customer_id', customerProfile.id)
-      .order('created_at', { ascending: false });
-    setTickets((data as SupportTicket[]) ?? []);
+
+    const [ticketRes, addressRes, bookingRes] = await Promise.all([
+      supabase.from('support_tickets').select('*').eq('customer_id', customerProfile.id).order('created_at', { ascending: false }),
+      supabase.from('addresses').select('*').eq('profile_id', profile.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('bookings').select('id, property_type, property_address').eq('customer_id', customerProfile.id).order('created_at', { ascending: false }).limit(20),
+    ]);
+
+    setTickets((ticketRes.data as SupportTicket[]) ?? []);
+    setBookingOptions((bookingRes.data ?? []) as Array<{ id: number; property_type: string; property_address: string }>);
+
+    const defaults = (addressRes.data as Address[]) ?? [];
+    const defaultAddress = defaults.find((item) => item.is_default) ?? defaults[0];
+    const defaultAddressText = defaultAddress ? [defaultAddress.address_line, defaultAddress.city, defaultAddress.state, defaultAddress.country].filter(Boolean).join(', ') : '';
+
+    setTicketForm((prev) => ({
+      ...prev,
+      full_name: activeCustomerName,
+      phone: profile.phone ?? '',
+      email: profile.email ?? user?.email ?? '',
+      address: defaultAddressText,
+    }));
+
+    setReviewForm((prev) => ({
+      ...prev,
+      full_name: activeCustomerName,
+      phone: profile.phone ?? '',
+      email: profile.email ?? user?.email ?? '',
+      address: defaultAddressText,
+      service_name: bookingOptions[0]?.property_type ?? 'General Service',
+    }));
+
     setLoading(false);
   }
 
   useEffect(() => {
-    load();
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerProfile]);
+  }, [customerProfile, profile, user]);
 
-  async function handleCreateTicket(e: React.FormEvent) {
+  async function handleTicketSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerProfile || submitting) return;
-    if (!subject.trim() || !description.trim()) {
-      toast.error('Please provide a subject and description.');
+    if (!customerProfile || submittingTicket) return;
+    if (!ticketForm.subject.trim() || !ticketForm.details.trim()) {
+      toast.error('Please fill in the subject and issue details.');
       return;
     }
-    setSubmitting(true);
+
+    setSubmittingTicket(true);
     try {
+      const descriptionText = [
+        `Customer: ${ticketForm.full_name}`,
+        `Email: ${ticketForm.email}`,
+        `Phone: ${ticketForm.phone}`,
+        `Address: ${ticketForm.address || 'Not provided'}`,
+        `Department: ${ticketForm.department}`,
+        `Request type: ${ticketForm.request_type}`,
+        `Issue details: ${ticketForm.details.trim()}`,
+      ].join('\n');
+
       const { error } = await supabase.from('support_tickets').insert({
         customer_id: customerProfile.id,
-        subject: subject.trim(),
-        description: description.trim(),
-        priority,
+        subject: `${ticketForm.department} - ${ticketForm.subject.trim()}`,
+        description: descriptionText,
+        priority: ticketForm.priority,
+        status: 'open',
       });
+
       if (error) throw error;
-      toast.success('Support ticket created. Our team will respond shortly.');
-      setSubject('');
-      setDescription('');
-      setPriority('normal');
-      setShowNewForm(false);
-      load();
+      toast.success('Your support request has been submitted successfully.');
+      setTicketForm((prev) => ({ ...prev, subject: '', details: '' }));
+      await load();
     } catch {
-      toast.error('We could not create your support ticket. Please try again.');
+      toast.error('We could not submit your support request. Please try again.');
     } finally {
-      setSubmitting(false);
+      setSubmittingTicket(false);
     }
   }
 
-  async function openTicket(ticket: SupportTicket) {
-    setActiveTicket(ticket);
-    const { data } = await supabase
-      .from('support_ticket_messages')
-      .select('*')
-      .eq('ticket_id', ticket.id)
-      .order('created_at', { ascending: true });
-    setMessages((data as SupportTicketMessage[]) ?? []);
-  }
+  async function handleReviewSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!customerProfile || submittingReview) return;
+    if (!reviewForm.comments.trim()) {
+      toast.error('Please leave a review comment before submitting.');
+      return;
+    }
 
-  async function handleReply() {
-    if (!activeTicket || !profile || !reply.trim() || sendingReply) return;
-    setSendingReply(true);
+    const bookingId = bookingOptions[0]?.id;
+    if (!bookingId) {
+      toast.error('No previous booking is available yet for this review. Please create a booking first.');
+      return;
+    }
+
+    setSubmittingReview(true);
     try {
-      const { error } = await supabase.from('support_ticket_messages').insert({
-        ticket_id: activeTicket.id,
-        profile_id: profile.id,
-        sender_type: 'customer',
-        message: reply.trim(),
+      const reviewText = [
+        `Customer: ${reviewForm.full_name}`,
+        `Email: ${reviewForm.email}`,
+        `Phone: ${reviewForm.phone}`,
+        `Address: ${reviewForm.address || 'Not provided'}`,
+        `Service: ${reviewForm.service_name || 'General Service'}`,
+        `Satisfaction level: ${reviewForm.satisfaction}`,
+        `Comments: ${reviewForm.comments.trim()}`,
+      ].join('\n');
+
+      const { error } = await supabase.from('service_reviews').insert({
+        customer_id: customerProfile.id,
+        booking_id: bookingId,
+        rating: Number(reviewForm.rating),
+        review: reviewText,
       });
+
       if (error) throw error;
-      setReply('');
-      openTicket(activeTicket);
+      toast.success('Your review has been saved successfully.');
+      setReviewForm((prev) => ({ ...prev, comments: '', service_name: bookingOptions[0]?.property_type ?? 'General Service' }));
     } catch {
-      toast.error('We could not send your reply.');
+      toast.error('We could not submit your review. Please try again.');
     } finally {
-      setSendingReply(false);
+      setSubmittingReview(false);
     }
-  }
-
-  if (activeTicket) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
-        <button className="btn btn-ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setActiveTicket(null)}>
-          ← Back to tickets
-        </button>
-        <GlassCard style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h3 style={{ fontSize: 16 }}>{activeTicket.subject}</h3>
-            <StatusBadge status={activeTicket.status} kind="ticket" />
-          </div>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>{activeTicket.description}</p>
-          <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
-            Priority: {activeTicket.priority} · Assigned to: {activeTicket.assigned_to ?? 'Unassigned'}
-          </p>
-        </GlassCard>
-
-        <GlassCard style={{ padding: 18 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 320, overflowY: 'auto', marginBottom: 14 }}>
-            {messages.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No replies yet.</p>
-            ) : (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  style={{
-                    alignSelf: m.sender_type === 'customer' ? 'flex-end' : 'flex-start',
-                    background: m.sender_type === 'customer' ? 'rgba(21,101,192,0.3)' : 'rgba(255,255,255,0.08)',
-                    borderRadius: 12,
-                    padding: '10px 14px',
-                    maxWidth: '80%',
-                  }}
-                >
-                  <p style={{ fontSize: 13 }}>{m.message}</p>
-                  <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 4 }}>{formatDateTime(m.created_at)}</p>
-                </div>
-              ))
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              className="input"
-              placeholder="Type a reply…"
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleReply()}
-            />
-            <button className="btn btn-primary" onClick={handleReply} disabled={sendingReply || !reply.trim()}>
-              {sendingReply ? <Spinner size={14} /> : 'Send'}
-            </button>
-          </div>
-        </GlassCard>
-      </div>
-    );
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
-        <div style={{ color: 'var(--text-muted)' }}>Need help? Create a ticket or reach us via any channel below.</div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button className="btn btn-primary" onClick={() => setShowNewForm((v) => !v)}>
-            + New Ticket
-          </button>
-          <a className="btn btn-ghost" href={`mailto:support@manor-cares.com?subject=Support%20Request`}>Send Mail</a>
-          <a className="btn btn-ghost" href={`https://wa.me/2340000000000?text=I%20need%20help`} target="_blank" rel="noreferrer">WhatsApp</a>
-          <a className="btn btn-ghost" href={`https://t.me/ManorCaresSupport`} target="_blank" rel="noreferrer">Telegram</a>
-          <a className="btn btn-ghost" href={`https://instagram.com/manor-cares`} target="_blank" rel="noreferrer">Instagram</a>
-          <a className="btn btn-ghost" href={`https://facebook.com/manor-cares`} target="_blank" rel="noreferrer">Facebook</a>
+      <GlassCard style={{ padding: 18, background: '#000000' }} strong>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ color: 'var(--text-muted)' }}>Need help? Create a ticket or reach us via any channel below.</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" type="button">+ New Ticket</button>
+            <a className="btn btn-ghost" href="mailto:support@manor-cares.com?subject=Support%20Request">Send Mail</a>
+            <a className="btn btn-ghost" href="https://wa.me/2340000000000?text=I%20need%20help" target="_blank" rel="noreferrer">WhatsApp</a>
+            <a className="btn btn-ghost" href="https://t.me/ManorCaresSupport" target="_blank" rel="noreferrer">Telegram</a>
+            <a className="btn btn-ghost" href="https://instagram.com/manor-cares" target="_blank" rel="noreferrer">Instagram</a>
+            <a className="btn btn-ghost" href="https://facebook.com/manor-cares" target="_blank" rel="noreferrer">Facebook</a>
+          </div>
         </div>
-      </div>
+      </GlassCard>
 
-      {showNewForm && (
-        <GlassCard style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 15, marginBottom: 16 }}>Create Support Ticket</h3>
-          <form onSubmit={handleCreateTicket} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div className="field">
-              <label>Subject</label>
-              <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} required />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        <GlassCard style={{ padding: 20, background: '#000000' }} strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <Icon name="support" size={18} />
+            <h3 style={{ margin: 0, fontSize: '1rem' }}>Ticket / Enquiry Form</h3>
+          </div>
+
+          <form onSubmit={handleTicketSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label className="field">
+                <span>Full Name</span>
+                <input className="input" value={ticketForm.full_name} onChange={(e) => setTicketForm((prev) => ({ ...prev, full_name: e.target.value }))} />
+              </label>
+              <label className="field">
+                <span>Phone Number</span>
+                <input className="input" value={ticketForm.phone} onChange={(e) => setTicketForm((prev) => ({ ...prev, phone: e.target.value }))} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Email Address</span>
+                <input className="input" type="email" value={ticketForm.email} onChange={(e) => setTicketForm((prev) => ({ ...prev, email: e.target.value }))} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Address</span>
+                <input className="input" value={ticketForm.address} onChange={(e) => setTicketForm((prev) => ({ ...prev, address: e.target.value }))} />
+              </label>
+              <label className="field">
+                <span>Department</span>
+                <select className="input" value={ticketForm.department} onChange={(e) => setTicketForm((prev) => ({ ...prev, department: e.target.value }))}>
+                  <option value="Finance">Finance</option>
+                  <option value="HR">HR</option>
+                  <option value="IT Admin">IT Admin</option>
+                  <option value="Legal">Legal</option>
+                  <option value="Customer Care">Customer Care</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Request Type</span>
+                <select className="input" value={ticketForm.request_type} onChange={(e) => setTicketForm((prev) => ({ ...prev, request_type: e.target.value }))}>
+                  <option value="Technical Support">Technical Support</option>
+                  <option value="IT Help">IT Help</option>
+                  <option value="Query">Query</option>
+                  <option value="Request">Request</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Priority</span>
+                <select className="input" value={ticketForm.priority} onChange={(e) => setTicketForm((prev) => ({ ...prev, priority: e.target.value as TicketPriority }))}>
+                  <option value="low">Low</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Subject</span>
+                <input className="input" value={ticketForm.subject} onChange={(e) => setTicketForm((prev) => ({ ...prev, subject: e.target.value }))} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Issue / Request Details</span>
+                <textarea className="input" rows={6} value={ticketForm.details} onChange={(e) => setTicketForm((prev) => ({ ...prev, details: e.target.value }))} />
+              </label>
             </div>
-            <div className="field">
-              <label>Description</label>
-              <textarea className="input" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label>Priority</label>
-              <select className="input" value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority)}>
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={submitting}>
-              {submitting ? <Spinner size={16} /> : 'Submit Ticket'}
+
+            <button type="submit" className="btn btn-primary" disabled={submittingTicket} style={{ alignSelf: 'flex-start' }}>
+              {submittingTicket ? <Spinner size={16} /> : 'Submit Ticket'}
             </button>
           </form>
         </GlassCard>
-      )}
+
+        <GlassCard style={{ padding: 20, background: '#000000' }} strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <Icon name="star" size={18} />
+            <h3 style={{ margin: 0, fontSize: '1rem' }}>Review Form</h3>
+          </div>
+
+          <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label className="field">
+                <span>Full Name</span>
+                <input className="input" value={reviewForm.full_name} onChange={(e) => setReviewForm((prev) => ({ ...prev, full_name: e.target.value }))} />
+              </label>
+              <label className="field">
+                <span>Phone Number</span>
+                <input className="input" value={reviewForm.phone} onChange={(e) => setReviewForm((prev) => ({ ...prev, phone: e.target.value }))} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Email Address</span>
+                <input className="input" type="email" value={reviewForm.email} onChange={(e) => setReviewForm((prev) => ({ ...prev, email: e.target.value }))} />
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Address</span>
+                <input className="input" value={reviewForm.address} onChange={(e) => setReviewForm((prev) => ({ ...prev, address: e.target.value }))} />
+              </label>
+              <label className="field">
+                <span>Service / Product</span>
+                <input className="input" value={reviewForm.service_name} onChange={(e) => setReviewForm((prev) => ({ ...prev, service_name: e.target.value }))} />
+              </label>
+              <label className="field">
+                <span>Rating</span>
+                <select className="input" value={reviewForm.rating} onChange={(e) => setReviewForm((prev) => ({ ...prev, rating: e.target.value }))}>
+                  <option value="5">5 - Excellent</option>
+                  <option value="4">4 - Very Good</option>
+                  <option value="3">3 - Good</option>
+                  <option value="2">2 - Fair</option>
+                  <option value="1">1 - Poor</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Satisfaction</span>
+                <select className="input" value={reviewForm.satisfaction} onChange={(e) => setReviewForm((prev) => ({ ...prev, satisfaction: e.target.value }))}>
+                  <option value="Excellent">Excellent</option>
+                  <option value="Very Satisfied">Very Satisfied</option>
+                  <option value="Satisfied">Satisfied</option>
+                  <option value="Neutral">Neutral</option>
+                  <option value="Dissatisfied">Dissatisfied</option>
+                </select>
+              </label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <span>Your Review / Comments</span>
+                <textarea className="input" rows={6} value={reviewForm.comments} onChange={(e) => setReviewForm((prev) => ({ ...prev, comments: e.target.value }))} />
+              </label>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={submittingReview} style={{ alignSelf: 'flex-start' }}>
+              {submittingReview ? <Spinner size={16} /> : 'Submit Review'}
+            </button>
+          </form>
+        </GlassCard>
+      </div>
 
       {loading ? (
         <div className="card-grid">
@@ -217,14 +336,12 @@ export function SupportPage() {
       ) : (
         <div className="card-grid">
           {tickets.map((t) => (
-            <GlassCard key={t.id} style={{ padding: 18, cursor: 'pointer' }} onClick={() => openTicket(t)}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <GlassCard key={t.id} style={{ padding: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
                 <h4 style={{ fontSize: 14.5 }}>{t.subject}</h4>
-                <StatusBadge status={t.status} kind="ticket" />
+                <span className={`badge ${t.status === 'closed' ? 'badge-green' : t.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>{t.status}</span>
               </div>
-              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                {t.description}
-              </p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 8 }}>{t.description}</p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDateTime(t.created_at)}</p>
             </GlassCard>
           ))}
