@@ -1,14 +1,20 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationsContext';
 import Icon from './Icon';
 
-export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
-  const { profile } = useAuth();
+export function Topbar({
+  title,
+  onMenuClick,
+  theme,
+  onToggleTheme,
+}: {
+  title: string;
+  onMenuClick: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
+}) {
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
-
-  const initials = profile ? `${profile.first_name[0] ?? ''}${profile.last_name[0] ?? ''}`.toUpperCase() : '';
 
   return (
     <header className="glass topbar">
@@ -38,29 +44,17 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
             </span>
           )}
         </button>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--clr-blue), var(--clr-green))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
+        <button
+          className={`theme-toggle-3d ${theme === 'light' ? 'is-light' : 'is-dark'}`}
+          onClick={onToggleTheme}
+          type="button"
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          {profile?.profile_picture_url || profile?.avatar_url ? (
-            <img
-              src={profile?.profile_picture_url || profile?.avatar_url || '/logo.jpg'}
-              alt="User profile"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : initials || (
-            <img src="/logo.jpg" alt="Logo fallback" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          )}
-        </div>
+          <span className="theme-toggle-track">
+            <span className="theme-toggle-knob">{theme === 'dark' ? '🌙' : '☀️'}</span>
+          </span>
+        </button>
       </div>
     </header>
   );

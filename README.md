@@ -57,10 +57,19 @@ Fill in your project's values (Project Settings → API in the Supabase dashboar
 ```
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<public anon key>
+
+# Separate public metrics database (dedicated Supabase project)
+VITE_METRICS_SUPABASE_URL=https://<metrics-project-ref>.supabase.co
+VITE_METRICS_SUPABASE_ANON_KEY=<metrics project anon key>
 ```
 
 Only the **anon/public** key is ever used here — never the `service_role` key, database
 password, or any other secret. `.env` is gitignored.
+
+Metrics DB note:
+- Use a separate Supabase project for metrics only.
+- Run `supabase/public_metrics_schema.sql` in that separate metrics project.
+- The dashboard Public Insight Index reads/writes realtime metrics from that metrics project and does not use the users database.
 
 ### 3.3 Configure Supabase Auth redirect URLs
 
