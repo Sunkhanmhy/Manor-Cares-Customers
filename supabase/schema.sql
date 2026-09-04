@@ -720,6 +720,33 @@ alter table public.support_tickets enable row level security;
 alter table public.support_ticket_messages enable row level security;
 alter table public.notifications enable row level security;
 
+-- =====================================================================
+-- Base table privileges for PostgREST roles
+-- RLS does not replace SQL privileges: authenticated must have table grants
+-- before policies can be evaluated.
+-- =====================================================================
+grant usage on schema public to authenticated;
+
+grant select, insert, update, delete on table public.profiles to authenticated;
+grant select, insert, update, delete on table public.customer_profiles to authenticated;
+grant select, insert, update, delete on table public.addresses to authenticated;
+grant select, insert, update, delete on table public.notification_preferences to authenticated;
+grant select on table public.cleaning_services to authenticated;
+grant select, insert, update, delete on table public.bookings to authenticated;
+grant select, insert, update, delete on table public.payments to authenticated;
+grant select, insert, update, delete on table public.invoices to authenticated;
+grant select, insert, update, delete on table public.service_reviews to authenticated;
+grant select, insert, update, delete on table public.support_tickets to authenticated;
+grant select, insert, update, delete on table public.support_ticket_messages to authenticated;
+grant select, insert, update, delete on table public.notifications to authenticated;
+grant select, insert, update, delete on table public.invites to authenticated;
+grant select, insert, update, delete on table public.price_plans to authenticated;
+grant select, insert, update, delete on table public.price_enquiries to authenticated;
+
+grant usage, select on sequence public.customer_number_seq to authenticated;
+grant usage, select on sequence public.booking_number_seq to authenticated;
+grant usage, select on sequence public.invoice_number_seq to authenticated;
+
 -- profiles: own row only (+ admin/staff can view & update all)
 drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles for select to authenticated
