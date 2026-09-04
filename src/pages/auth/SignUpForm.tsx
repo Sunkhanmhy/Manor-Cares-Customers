@@ -124,7 +124,14 @@ export function SignUpForm() {
         border: '1px solid rgba(18, 163, 117, 0.45)',
       }}
     >
-      <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Create Account</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8 }}>
+        <h2 style={{ fontSize: '1.625rem', marginBottom: 0 }}>Create Account</h2>
+        <img
+          src="/logo.jpg"
+          alt="Manor-Cares"
+          style={{ width: 46, height: 46, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
+        />
+      </div>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 22 }}>
         Join Manor-Cares to book professional cleaning services in minutes.
       </p>
@@ -315,7 +322,7 @@ export function SignUpForm() {
           disabled={loading}
           style={{
             background: 'var(--clr-blue-dark)',
-            color: 'var(--clr-white)',
+            color: '#ffffff',
             boxShadow: '0 8px 20px rgba(13, 60, 107, 0.45)',
           }}
         >
