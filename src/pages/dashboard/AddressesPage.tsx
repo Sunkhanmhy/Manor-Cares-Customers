@@ -252,7 +252,7 @@ export function AddressesPage() {
         </div>
       </GlassCard>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <GlassCard style={{ padding: 20 }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Icon name="location" size={18} color="#fb7185" vector />
@@ -260,7 +260,7 @@ export function AddressesPage() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field" style={{ gridColumn: '1 / -1' }}>
                 <span>Address Type</span>
                 <select
@@ -418,7 +418,7 @@ export function AddressesPage() {
                         <div style={{ fontWeight: 600 }}>{address.address_line}</div>
                         <div style={{ color: 'var(--text-muted)' }}>{address.city}, {address.state ? `${address.state}, ` : ''}{address.country}</div>
                       </td>
-                      <td>{address.is_default ? <span className="badge badge-green">Default</span> : <span className="badge badge-gray">Optional</span>}</td>
+                      <td>{address.is_default ? <span className="badge badge-green address-default-badge">Default</span> : <span className="badge badge-gray">Optional</span>}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                           {!address.is_default && (
@@ -466,7 +466,7 @@ export function AddressesPage() {
               <h3 style={{ margin: 0, fontSize: '1.05rem' }}>{selectedAddress.address_type.toUpperCase()} Address</h3>
               <button className="btn btn-ghost" onClick={() => setSelectedAddress(null)}>Close</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.8125rem' }}>
+            <div className="grid-2" style={{ gap: 12, fontSize: '0.8125rem' }}>
               <div className="field" style={{ gridColumn: '1 / -1' }}>
                 <label>Street Address</label>
                 <div className="input" style={{ display: 'flex', alignItems: 'center', minHeight: 44 }}>{selectedAddress.address_line}</div>

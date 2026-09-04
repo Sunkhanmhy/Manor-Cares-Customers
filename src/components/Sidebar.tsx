@@ -43,7 +43,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             }}
           />
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--clr-white)' }}>Manor-Cares</div>
+            <div className="sidebar-brand-name" style={{ fontWeight: 700, fontSize: '0.9375rem' }}>Manor-Cares</div>
             <div style={{ fontSize: '0.71875rem', color: 'var(--text-muted)' }}>Customer Portal</div>
           </div>
         </div>

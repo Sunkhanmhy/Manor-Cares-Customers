@@ -147,7 +147,7 @@ export function SignUpForm() {
           <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Personal Information
           </legend>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid-2" style={{ gap: 12 }}>
             <div className="field">
               <label>First Name</label>
               <input
@@ -211,7 +211,7 @@ export function SignUpForm() {
           <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Address Information
           </legend>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid-2" style={{ gap: 12 }}>
             <div className="field" style={{ gridColumn: '1 / -1' }}>
               <label>Address</label>
               <input
@@ -254,7 +254,7 @@ export function SignUpForm() {
           <legend style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--clr-white)', marginBottom: 10 }}>
             Account Information
           </legend>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid-2" style={{ gap: 12 }}>
             <div className="field">
               <label>Password</label>
               <div style={{ position: 'relative' }}>

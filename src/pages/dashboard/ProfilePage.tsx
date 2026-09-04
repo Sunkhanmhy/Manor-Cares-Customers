@@ -350,6 +350,7 @@ export function ProfilePage() {
       <GlassCard style={{ padding: 18, background: '#000000' }} strong>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div
+            className="profile-avatar-holder"
             style={{
               width: 84,
               height: 84,
@@ -384,7 +385,7 @@ export function ProfilePage() {
 
       <GlassCard style={{ padding: 24, background: '#000000' }} strong>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+          <div className="grid-2" style={{ gap: 18 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <GlassCard style={{ padding: 18, background: '#000000' }} strong>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -392,7 +393,7 @@ export function ProfilePage() {
                   <h3 style={{ margin: 0, fontSize: '0.98rem' }}>Personal Details</h3>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid-2" style={{ gap: 12 }}>
                   <label className="field" style={{ gridColumn: '1 / -1' }}>
                     <span>Profile Picture</span>
                     <input
@@ -496,7 +497,7 @@ export function ProfilePage() {
                   <h3 style={{ margin: 0, fontSize: '0.98rem' }}>More Information</h3>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid-2" style={{ gap: 12 }}>
                   <label className="field" style={{ gridColumn: '1 / -1' }}>
                     <span>ID Document</span>
                     <input
