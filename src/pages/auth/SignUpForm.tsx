@@ -114,7 +114,16 @@ export function SignUpForm() {
   }
 
   return (
-    <GlassCard strong id="create-account" style={{ padding: 'clamp(24px, 4vw, 40px)', width: '100%' }}>
+    <GlassCard
+      strong
+      id="create-account"
+      style={{
+        padding: 'clamp(24px, 4vw, 40px)',
+        width: '100%',
+        background: 'linear-gradient(145deg, rgba(18, 163, 117, 0.24), rgba(10, 107, 77, 0.2))',
+        border: '1px solid rgba(18, 163, 117, 0.45)',
+      }}
+    >
       <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Create Account</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 22 }}>
         Join Manor-Cares to book professional cleaning services in minutes.
@@ -300,7 +309,16 @@ export function SignUpForm() {
 
         {formError && <p className="error-text" role="alert">{formError}</p>}
 
-        <button type="submit" className="btn btn-success btn-block" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-block"
+          disabled={loading}
+          style={{
+            background: 'var(--clr-blue-dark)',
+            color: 'var(--clr-white)',
+            boxShadow: '0 8px 20px rgba(13, 60, 107, 0.45)',
+          }}
+        >
           {loading ? <Spinner size={16} /> : 'Create Account'}
         </button>
       </form>

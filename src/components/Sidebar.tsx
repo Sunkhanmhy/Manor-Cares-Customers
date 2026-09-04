@@ -65,7 +65,20 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               }}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
             >
-              <span aria-hidden="true">
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 10,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: `${item.color}22`,
+                  border: `1px solid ${item.color}66`,
+                  boxShadow: `0 0 16px ${item.color}33`,
+                }}
+              >
                 <Icon name={item.icon as string} size={20} color={item.color} vector />
               </span>
               <span>{item.label}</span>
@@ -84,7 +97,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
           <button className="btn btn-ghost btn-block" onClick={() => signOut()}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="logout" size={18} /> Logout
+              <Icon name="logout" size={18} color="#f87171" vector /> Logout
             </span>
           </button>
         </div>

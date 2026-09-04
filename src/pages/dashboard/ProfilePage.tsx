@@ -51,11 +51,6 @@ export function ProfilePage() {
     return fullName || user?.email?.split('@')[0] || 'Customer';
   }, [form.first_name, form.last_name, user?.email]);
 
-  const fallbackAvatar = useMemo(() => {
-    const g = (form.gender ?? '').toLowerCase();
-    return g === 'female' ? '👩' : '👨';
-  }, [form.gender]);
-
   useEffect(() => {
     if (!profile && !user) return;
     setForm({
@@ -180,9 +175,10 @@ export function ProfilePage() {
       const profilePayload = {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
-        email: form.email.trim() || user?.email || '',
+        email: profile?.email ?? user?.email ?? form.email.trim(),
         phone: form.phone.trim() || null,
-        profile_picture_url: form.profile_picture_url || '/logo.jpg',
+        profile_picture_url: form.profile_picture_url.trim() || null,
+        avatar_url: form.profile_picture_url.trim() || null,
         id_document_url: form.id_document_url || null,
         preferred_name: form.preferred_name.trim() || null,
         date_of_birth: form.date_of_birth || null,
@@ -261,21 +257,13 @@ export function ProfilePage() {
           notes: notesPayload,
         };
 
-        if (customerProfile) {
-          const targetCustomerId = identity.customerId ?? customerProfile.id;
-          const { error: customerUpdateError } = await supabase.from('customer_profiles').update(dataPayload).eq('id', targetCustomerId);
-          if (customerUpdateError) throw customerUpdateError;
-        } else {
-          const { data: createdCustomerProfile } = await supabase
-            .from('customer_profiles')
-            .insert({
-              profile_id: resolvedProfileId,
-              ...dataPayload,
-            })
-            .select('id')
-            .single();
+        const { error: customerUpdateError } = await supabase
+          .from('customer_profiles')
+          .update(dataPayload)
+          .eq('profile_id', resolvedProfileId);
 
-          if (!createdCustomerProfile) throw new Error('Customer profile creation failed');
+        if (customerUpdateError) {
+          throw customerUpdateError;
         }
       }
 
@@ -319,13 +307,38 @@ export function ProfilePage() {
     if (!user) return;
     setUploading(true);
     try {
-      const fileName = `profile_${user.id}_${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage.from('id-docs').upload(fileName, file, { cacheControl: '3600', upsert: false });
-      if (error) throw error;
-      const { data: urlData } = supabase.storage.from('id-docs').getPublicUrl(data.path);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `${user.id}/profile_${Date.now()}_${safeName}`;
+      const buckets = ['profile-images', 'avatars', 'id-docs'];
+      let uploadedPath: string | null = null;
+      let uploadedBucket: string | null = null;
+      let lastError: unknown = null;
+
+      for (const bucket of buckets) {
+        const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+        if (error) {
+          lastError = error;
+          continue;
+        }
+
+        uploadedPath = data.path;
+        uploadedBucket = bucket;
+        break;
+      }
+
+      if (!uploadedPath || !uploadedBucket) {
+        throw lastError ?? new Error('No storage bucket available for profile upload');
+      }
+
+      const { data: urlData } = supabase.storage.from(uploadedBucket).getPublicUrl(uploadedPath);
       setForm((prev) => ({ ...prev, profile_picture_url: urlData.publicUrl, id_document_url: urlData.publicUrl }));
       toast.success('Profile image uploaded. Save to sync to the database.');
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error('Image upload failed. Please try again.');
     } finally {
       setUploading(false);
@@ -341,7 +354,7 @@ export function ProfilePage() {
               width: 84,
               height: 84,
               borderRadius: 24,
-              background: 'linear-gradient(135deg, var(--clr-blue), var(--clr-green))',
+              background: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -359,7 +372,7 @@ export function ProfilePage() {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <span style={{ fontSize: '2rem', lineHeight: 1 }}>{fallbackAvatar}</span>
+              <span aria-hidden="true" />
             )}
           </div>
           <div>
@@ -375,7 +388,7 @@ export function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <GlassCard style={{ padding: 18, background: '#000000' }} strong>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <Icon name="user" size={18} />
+                  <Icon name="user" size={18} color="#f59e0b" vector />
                   <h3 style={{ margin: 0, fontSize: '0.98rem' }}>Personal Details</h3>
                 </div>
 
@@ -407,14 +420,14 @@ export function ProfilePage() {
                   <label className="field" style={{ gridColumn: '1 / -1' }}>
                     <span>Email</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Icon name="support" size={18} />
-                      <input className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" required />
+                      <Icon name="support" size={18} color="#f97316" vector />
+                      <input className="input" value={form.email} type="email" readOnly required />
                     </div>
                   </label>
                   <label className="field">
                     <span>Phone Number</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Icon name="support" size={18} />
+                      <Icon name="support" size={18} color="#f97316" vector />
                       <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                     </div>
                   </label>
@@ -479,7 +492,7 @@ export function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <GlassCard style={{ padding: 18 }} strong>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <Icon name="settings" size={18} />
+                  <Icon name="settings" size={18} color="#38bdf8" vector />
                   <h3 style={{ margin: 0, fontSize: '0.98rem' }}>More Information</h3>
                 </div>
 

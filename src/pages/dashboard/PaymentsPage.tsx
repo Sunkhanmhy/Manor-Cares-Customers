@@ -291,7 +291,7 @@ export function PaymentsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Icon name="home" size={18} />
+            <Icon name="home" size={18} color="#60a5fa" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Private Properties Calculator</h3>
           </div>
 
@@ -338,7 +338,7 @@ export function PaymentsPage() {
 
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Icon name="payments" size={18} />
+            <Icon name="payments" size={18} color="#2dd4bf" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Checkout</h3>
           </div>
 
@@ -383,7 +383,7 @@ export function PaymentsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Icon name="building" size={18} />
+            <Icon name="building" size={18} color="#34d399" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Public Properties Calculator</h3>
           </div>
 
@@ -428,7 +428,7 @@ export function PaymentsPage() {
 
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Icon name="payments" size={18} />
+            <Icon name="payments" size={18} color="#2dd4bf" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Checkout</h3>
           </div>
 

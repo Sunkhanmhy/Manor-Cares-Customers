@@ -253,7 +253,7 @@ export function SupportPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <Icon name="support" size={18} />
+            <Icon name="support" size={18} color="#f97316" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Ticket / Enquiry Form</h3>
           </div>
 
@@ -321,7 +321,7 @@ export function SupportPage() {
 
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <Icon name="star" size={18} />
+            <Icon name="star" size={18} color="#f4c95d" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Review Form</h3>
           </div>
 
@@ -382,7 +382,7 @@ export function SupportPage() {
 
       <GlassCard style={{ padding: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <Icon name="support" size={18} />
+          <Icon name="support" size={18} color="#f97316" vector />
           <h3 style={{ margin: 0, fontSize: '1rem' }}>Submitted Enquiries & Ticket Report</h3>
         </div>
 

@@ -323,7 +323,7 @@ export function BookCleaningPage() {
       <GlassCard style={{ padding: 18, background: '#000000' }} strong>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="clean" size={22} />
+            <Icon name="clean" size={22} color="#34d399" vector />
             <div>
               <h3 style={{ fontSize: '1.05rem' }}>Cleaning Service Request</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: 2 }}>Authenticated using your account details and saved address information.</p>
@@ -336,7 +336,7 @@ export function BookCleaningPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Icon name="home" size={18} />
+            <Icon name="home" size={18} color="#60a5fa" vector />
             <h3 style={{ fontSize: '1rem' }}>Private Property</h3>
           </div>
 
@@ -452,7 +452,7 @@ export function BookCleaningPage() {
 
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Icon name="building" size={18} />
+            <Icon name="building" size={18} color="#34d399" vector />
             <h3 style={{ fontSize: '1rem' }}>Public Property</h3>
           </div>
 

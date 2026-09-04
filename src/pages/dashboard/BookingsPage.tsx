@@ -173,7 +173,7 @@ export function BookingsPage() {
       <GlassCard style={{ padding: 18, minHeight: 240 }} strong>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name={isPrivate ? 'home' : 'office'} size={18} />
+            <Icon name={isPrivate ? 'home' : 'office'} size={18} color={isPrivate ? '#60a5fa' : '#2dd4bf'} vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>{title}</h3>
           </div>
           {sectionBookings.length > 0 && (
@@ -321,7 +321,7 @@ export function BookingsPage() {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-        <Icon name="check" size={14} />
+        <Icon name="check" size={14} color="#22c55e" vector />
         <span>{selectedCount} booking(s) selected</span>
       </div>
     </div>
