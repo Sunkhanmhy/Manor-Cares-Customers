@@ -40,25 +40,6 @@ export function SignInForm() {
 
   return (
     <GlassCard strong style={{ padding: 'clamp(24px, 4vw, 40px)', width: '100%' }}>
-      <div
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: 14,
-          background: 'rgba(255, 255, 255, 0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          marginBottom: 18,
-        }}
-      >
-        <img
-          src="/logo.jpg"
-          alt="Manor-Cares"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-      </div>
       <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Welcome Back</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
         Sign in to manage your cleaning services, bookings, payments and account.
