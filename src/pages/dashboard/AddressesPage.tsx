@@ -255,7 +255,7 @@ export function AddressesPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
         <GlassCard style={{ padding: 20 }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Icon name="location" size={18} />
+            <Icon name="location" size={18} color="#fb7185" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>{editingId ? 'Edit Address' : 'Default Address'}</h3>
           </div>
 
@@ -277,7 +277,7 @@ export function AddressesPage() {
               <label className="field" style={{ gridColumn: '1 / -1' }}>
                 <span>Street Address / Property Address</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Icon name="location" size={18} />
+                  <Icon name="location" size={18} color="#fb7185" vector />
                   <input
                     className="input"
                     value={form.address_line}
@@ -383,7 +383,7 @@ export function AddressesPage() {
         <GlassCard style={{ padding: 20 }} strong>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="calendar" size={18} />
+              <Icon name="calendar" size={18} color="#a78bfa" vector />
               <h3 style={{ margin: 0, fontSize: '1rem' }}>Registered Addresses</h3>
             </div>
             <button className="btn btn-primary" onClick={openAddForm}>+ Add</button>

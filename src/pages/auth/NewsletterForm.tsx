@@ -54,7 +54,7 @@ export function NewsletterForm() {
             aria-label="Email address"
             required
           />
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ flexShrink: 0 }}>
+          <button type="submit" className="btn btn-success" disabled={loading} style={{ flexShrink: 0 }}>
             {loading ? <Spinner size={16} /> : 'Subscribe'}
           </button>
         </form>

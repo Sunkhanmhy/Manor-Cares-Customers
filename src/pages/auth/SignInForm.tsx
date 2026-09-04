@@ -45,16 +45,19 @@ export function SignInForm() {
           width: 46,
           height: 46,
           borderRadius: 14,
-          background: 'linear-gradient(135deg, var(--clr-blue), var(--clr-blue-dark))',
+          background: 'rgba(255, 255, 255, 0.12)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontWeight: 800,
-          color: 'var(--clr-white)',
+          overflow: 'hidden',
           marginBottom: 18,
         }}
       >
-        MC
+        <img
+          src="/logo.jpg"
+          alt="Manor-Cares"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
       </div>
       <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Welcome Back</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
@@ -122,7 +125,7 @@ export function SignInForm() {
 
         {error && <p className="error-text" role="alert">{error}</p>}
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+        <button type="submit" className="btn btn-success btn-block" disabled={loading}>
           {loading ? <Spinner size={16} /> : 'Sign In'}
         </button>
       </form>

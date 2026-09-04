@@ -142,7 +142,7 @@ export function NotificationsPage() {
       <GlassCard style={{ padding: 18 }} strong>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name="notifications" size={18} />
+            <Icon name="notifications" size={18} color="#facc15" vector />
             <h3 style={{ margin: 0, fontSize: '1rem' }}>Account Activity</h3>
           </div>
           <button type="button" className="btn btn-ghost" style={{ padding: '7px 12px', fontSize: '0.75rem' }} onClick={() => void markAllAsRead()}>
@@ -179,7 +179,7 @@ export function NotificationsPage() {
                   <tr key={notification.id} onClick={() => !notification.is_read && void markAsRead(notification.id)} style={{ cursor: notification.is_read ? 'default' : 'pointer' }}>
                     <td>
                       <span className="badge badge-blue">
-                        <Icon name={ICONS[notification.type] ?? 'notifications'} size={12} />
+                        <Icon name={ICONS[notification.type] ?? 'notifications'} size={12} color="#facc15" vector />
                         {notification.type.replace(/_/g, ' ')}
                       </span>
                     </td>
