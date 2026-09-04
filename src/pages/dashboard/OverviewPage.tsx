@@ -385,7 +385,7 @@ export function OverviewPage() {
       <GlassCard style={{ padding: 16, background: 'linear-gradient(145deg, rgba(34,211,238,0.12), rgba(16,185,129,0.08))' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <h3 style={{ margin: 0, fontSize: '1rem' }}>Public Insight Index</h3>
-          <span className="badge badge-blue">{metricsEnabled ? (metricsSyncing ? 'Syncing metrics...' : 'Realtime public metrics') : 'Metrics DB not configured'}</span>
+          <span className="badge badge-blue metrics-badge">{metricsEnabled ? (metricsSyncing ? 'Syncing metrics...' : 'Realtime public metrics') : 'Metrics DB not configured'}</span>
         </div>
       </GlassCard>
 
@@ -438,7 +438,7 @@ export function OverviewPage() {
             </div>
           </div>
           <MiniCurveChart data={insights.reviewSeries} stroke={ICON_COLORS.support} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+          <div className="grid-2" style={{ gap: 10, marginTop: 8 }}>
             <button
               type="button"
               className="btn btn-ghost"

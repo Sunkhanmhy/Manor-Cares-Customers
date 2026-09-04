@@ -305,7 +305,7 @@ export function BookingsPage() {
       </GlassCard>
 
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        <div className="grid-2" style={{ gap: 18 }}>
           {Array.from({ length: 2 }).map((_, index) => (
             <GlassCard key={index} style={{ padding: 18 }} strong>
               <div style={{ height: 18, width: '50%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 18 }} />
@@ -314,7 +314,7 @@ export function BookingsPage() {
           ))}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        <div className="grid-2" style={{ gap: 18 }}>
           {renderTable('Private Property List', rowsByType.privateBookings, true)}
           {renderTable('Public Property List', rowsByType.publicBookings, false)}
         </div>

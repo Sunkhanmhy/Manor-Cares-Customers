@@ -78,6 +78,15 @@ body {
   :root { --global-font-size: 14px; }
 }
 
+/* Responsive 2-column form/layout grid used across auth + dashboard pages */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
 #root {
   min-height: 100dvh;
   display: flex;
@@ -380,6 +389,32 @@ select.input option {
 :root[data-theme='light'] .sidebar-link:hover {
   background: rgba(21, 101, 192, 0.12);
   color: #0f2f52;
+}
+
+.sidebar-brand-name {
+  color: var(--clr-white);
+}
+
+:root[data-theme='light'] .sidebar-brand-name {
+  color: #000000;
+}
+
+/* Light mode only: keep CTA primary buttons legible (anchors otherwise inherit the dark link color below) */
+:root[data-theme='light'] .dashboard-content a.btn-primary {
+  color: var(--clr-white);
+}
+
+:root[data-theme='light'] .metrics-badge {
+  color: #0f1f33;
+}
+
+:root[data-theme='light'] .address-default-badge {
+  color: #0f1f33;
+}
+
+:root[data-theme='light'] .profile-avatar-holder {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
 }
 
 :root[data-theme='light'] .dashboard-content .glass,

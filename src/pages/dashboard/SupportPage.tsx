@@ -250,7 +250,7 @@ export function SupportPage() {
         </div>
       </GlassCard>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <Icon name="support" size={18} color="#f97316" vector />
@@ -258,7 +258,7 @@ export function SupportPage() {
           </div>
 
           <form onSubmit={handleTicketSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Full Name</span>
                 <input className="input" value={ticketForm.full_name} onChange={(e) => setTicketForm((prev) => ({ ...prev, full_name: e.target.value }))} />
@@ -326,7 +326,7 @@ export function SupportPage() {
           </div>
 
           <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Full Name</span>
                 <input className="input" value={reviewForm.full_name} onChange={(e) => setReviewForm((prev) => ({ ...prev, full_name: e.target.value }))} />

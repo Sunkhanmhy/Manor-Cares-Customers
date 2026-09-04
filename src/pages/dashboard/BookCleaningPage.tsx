@@ -333,7 +333,7 @@ export function BookCleaningPage() {
         </div>
       </GlassCard>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <Icon name="home" size={18} color="#60a5fa" vector />
@@ -347,7 +347,7 @@ export function BookCleaningPage() {
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Customer Name</span>
                 <input className="input" value={privateForm.customer_name} onChange={(e) => setPrivateForm({ ...privateForm, customer_name: e.target.value })} />
@@ -463,7 +463,7 @@ export function BookCleaningPage() {
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Customer Name</span>
                 <input className="input" value={publicForm.customer_name} onChange={(e) => setPublicForm({ ...publicForm, customer_name: e.target.value })} />
@@ -574,7 +574,7 @@ export function BookCleaningPage() {
       </div>
 
       <GlassCard style={{ padding: 18, background: '#000000' }} strong>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
           {summaryStats.map((item) => (
             <div key={item.label} style={{ padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.71875rem', marginBottom: 4 }}>{item.label}</div>

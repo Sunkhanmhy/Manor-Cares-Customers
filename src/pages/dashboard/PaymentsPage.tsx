@@ -265,7 +265,7 @@ export function PaymentsPage() {
       </GlassCard>
 
       <div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(220px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
           {STANDARD_PRIVATE_PLANS.map((plan, index) => (
             <GlassCard key={plan.name} style={{ padding: 16, background: PLAN_STYLES[index].bg, border: PLAN_STYLES[index].border }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
@@ -288,7 +288,7 @@ export function PaymentsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
             <Icon name="home" size={18} color="#60a5fa" vector />
@@ -310,7 +310,7 @@ export function PaymentsPage() {
               </select>
             </label>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Bedrooms</span>
                 <input type="number" min={0} className="input" value={privateCalc.bedrooms} onChange={(e) => setPrivateCalc((prev) => ({ ...prev, bedrooms: Number(e.target.value || 0) }))} />
@@ -380,7 +380,7 @@ export function PaymentsPage() {
         </GlassCard>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <GlassCard style={{ padding: 20, background: '#000000' }} strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
             <Icon name="building" size={18} color="#34d399" vector />
@@ -400,7 +400,7 @@ export function PaymentsPage() {
               </select>
             </label>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid-2" style={{ gap: 12 }}>
               <label className="field">
                 <span>Room</span>
                 <input type="number" min={0} className="input" value={publicCalc.rooms} onChange={(e) => setPublicCalc((prev) => ({ ...prev, rooms: Number(e.target.value || 0) }))} />
