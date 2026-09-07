@@ -178,16 +178,16 @@ export function InvoicesPage() {
               ) : (
                 transactions.map((entry, index) => (
                   <tr key={entry.id}>
-                    <td>{(page - 1) * pageSize + index + 1}</td>
-                    <td>
+                    <td data-label="S/No.">{(page - 1) * pageSize + index + 1}</td>
+                    <td data-label="Payment Details">
                       <div style={{ fontWeight: 700 }}>{formatCurrency(Number(entry.amount), entry.currency)}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Ref: {entry.payment_reference}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', textTransform: 'capitalize' }}>
                         Method: {entry.payment_method ?? 'N/A'}
                       </div>
                     </td>
-                    <td>{formatDateTime(entry.paid_at ?? entry.created_at)}</td>
-                    <td><StatusBadge status={entry.payment_status} kind="payment" /></td>
+                    <td data-label="Payment Date">{formatDateTime(entry.paid_at ?? entry.created_at)}</td>
+                    <td data-label="Payment Status"><StatusBadge status={entry.payment_status} kind="payment" /></td>
                   </tr>
                 ))
               )}
