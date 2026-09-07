@@ -413,13 +413,13 @@ export function AddressesPage() {
                 ) : (
                   tableRows.map((address) => (
                     <tr key={address.id} onClick={() => setSelectedAddress(address)} style={{ cursor: 'pointer' }}>
-                      <td style={{ textTransform: 'capitalize' }}>{address.address_type}</td>
-                      <td>
+                      <td data-label="Type" style={{ textTransform: 'capitalize' }}>{address.address_type}</td>
+                      <td data-label="Location">
                         <div style={{ fontWeight: 600 }}>{address.address_line}</div>
                         <div style={{ color: 'var(--text-muted)' }}>{address.city}, {address.state ? `${address.state}, ` : ''}{address.country}</div>
                       </td>
-                      <td>{address.is_default ? <span className="badge badge-green address-default-badge">Default</span> : <span className="badge badge-gray">Optional</span>}</td>
-                      <td>
+                      <td data-label="Default">{address.is_default ? <span className="badge badge-green address-default-badge">Default</span> : <span className="badge badge-gray">Optional</span>}</td>
+                      <td data-label="Actions">
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                           {!address.is_default && (
                             <button

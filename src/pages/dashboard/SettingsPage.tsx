@@ -122,17 +122,17 @@ export function SettingsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 520 }}>
       <GlassCard style={{ padding: 24 }}>
         <h3 style={{ fontSize: 16, marginBottom: 12 }}>Personalization</h3>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
           <label style={{ minWidth: 110, color: 'var(--text-muted)' }}>Theme</label>
-          <select className="input" value={theme} onChange={(e) => setTheme(e.target.value as any)}>
+          <select className="input" style={{ flex: '1 1 160px', minWidth: 0 }} value={theme} onChange={(e) => setTheme(e.target.value as any)}>
             <option value="auto">Auto</option>
             <option value="dark">Dark</option>
             <option value="light">Light</option>
           </select>
         </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ minWidth: 110, color: 'var(--text-muted)' }}>Text Size</label>
-          <select className="input" value={textSize} onChange={(e) => setTextSize(e.target.value as any)}>
+          <select className="input" style={{ flex: '1 1 160px', minWidth: 0 }} value={textSize} onChange={(e) => setTextSize(e.target.value as any)}>
             <option value="small">Small</option>
             <option value="medium">Medium</option>
             <option value="large">Large</option>

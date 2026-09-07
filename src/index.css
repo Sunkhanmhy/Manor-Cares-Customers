@@ -43,6 +43,7 @@
 body {
   margin: 0;
   min-height: 100dvh;
+  overflow-x: hidden;
   font-family: var(--sans);
   font-size: var(--global-font-size);
   line-height: 1.5;
@@ -655,6 +656,70 @@ svg.icon polygon {
 
 .table-clean tr:last-child td {
   border-bottom: none;
+}
+
+/* Responsive tables: stack each row into a labeled card on narrow screens */
+@media (max-width: 640px) {
+  .table-clean thead {
+    display: none;
+  }
+
+  .table-clean,
+  .table-clean tbody,
+  .table-clean tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table-clean tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-clean tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .table-clean td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    white-space: normal;
+    text-align: right;
+  }
+
+  .table-clean td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    text-align: left;
+  }
+
+  .table-clean td:not([data-label])::before {
+    content: none;
+  }
+
+  .table-clean tr.row-actions {
+    border: none;
+    margin-top: -8px;
+  }
+
+  .table-clean tr.row-actions td {
+    display: block;
+    text-align: left;
+  }
+
+  .table-clean tr.row-actions td::before {
+    content: none;
+  }
 }
 
 /* ---------------------------------------------------------------- */

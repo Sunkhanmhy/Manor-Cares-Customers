@@ -177,16 +177,16 @@ export function NotificationsPage() {
               ) : (
                 visibleNotifications.map((notification) => (
                   <tr key={notification.id} onClick={() => !notification.is_read && void markAsRead(notification.id)} style={{ cursor: notification.is_read ? 'default' : 'pointer' }}>
-                    <td>
+                    <td data-label="Type">
                       <span className="badge badge-blue">
                         <Icon name={ICONS[notification.type] ?? 'notifications'} size={12} color="#facc15" vector />
                         {notification.type.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td style={{ fontWeight: 700 }}>{notification.title}</td>
-                    <td>{notification.message}</td>
-                    <td>{formatDateTime(notification.created_at)}</td>
-                    <td>
+                    <td data-label="Title" style={{ fontWeight: 700 }}>{notification.title}</td>
+                    <td data-label="Message">{notification.message}</td>
+                    <td data-label="Received">{formatDateTime(notification.created_at)}</td>
+                    <td data-label="Status">
                       {notification.is_read ? <span className="badge badge-green">Read</span> : <span className="badge badge-amber">Unread</span>}
                     </td>
                   </tr>

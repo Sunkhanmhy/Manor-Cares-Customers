@@ -395,16 +395,17 @@ export function SupportPage() {
                 <th>Department</th>
                 <th>Ticket Type</th>
                 <th>Priority</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '14px 12px' }}><SkeletonCard /></td>
+                  <td colSpan={6} style={{ padding: '14px 12px' }}><SkeletonCard /></td>
                 </tr>
               ) : tickets.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '18px 14px' }}>
+                  <td colSpan={6} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '18px 14px' }}>
                     No data available. Update your record, now!
                   </td>
                 </tr>
@@ -413,19 +414,19 @@ export function SupportPage() {
                   const meta = extractTicketMeta(ticket.description);
                   return (
                     <tr key={ticket.id}>
-                      <td>{index + 1}</td>
-                      <td>
+                      <td data-label="S/No.">{index + 1}</td>
+                      <td data-label="Ticket Details">
                         <div style={{ fontWeight: 700 }}>{ticket.subject}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.78125rem' }}>#{ticket.id} • {formatDateTime(ticket.created_at)}</div>
-                        <div style={{ marginTop: 4 }}>
-                          <span className={`badge ${ticket.status === 'closed' ? 'badge-green' : ticket.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>
-                            {ticket.status}
-                          </span>
-                        </div>
                       </td>
-                      <td>{meta.department}</td>
-                      <td>{meta.requestType}</td>
-                      <td style={{ textTransform: 'capitalize' }}>{ticket.priority}</td>
+                      <td data-label="Department">{meta.department}</td>
+                      <td data-label="Ticket Type">{meta.requestType}</td>
+                      <td data-label="Priority" style={{ textTransform: 'capitalize' }}>{ticket.priority}</td>
+                      <td data-label="Status">
+                        <span className={`badge ${ticket.status === 'closed' ? 'badge-green' : ticket.status === 'resolved' ? 'badge-blue' : 'badge-amber'}`}>
+                          {ticket.status}
+                        </span>
+                      </td>
                     </tr>
                   );
                 })

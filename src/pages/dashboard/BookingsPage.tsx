@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
@@ -213,8 +213,8 @@ export function BookingsPage() {
           </div>
         )}
 
-        <div className="scroll-x" style={{ display: 'block', width: '100%' }}>
-          <table className="table-clean" style={{ minWidth: 640 }}>
+        <div className="scroll-x">
+          <table className="table-clean">
             <thead>
               <tr>
                 <th style={{ width: 32 }}>
@@ -229,50 +229,53 @@ export function BookingsPage() {
                 <th>Property Description</th>
                 <th>Date Created</th>
                 <th>Time Created</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {sectionBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '18px 14px' }}>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '18px 14px' }}>
                     No data available. Update your record, now!
                   </td>
                 </tr>
               ) : (
                 sectionBookings.map((booking, index) => (
-                  <tr key={booking.id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={!!selectedIds[booking.id]}
-                        onChange={() => toggleSelected(booking.id)}
-                        aria-label={`Select booking ${booking.booking_number}`}
-                      />
-                    </td>
-                    <td>{index + 1}</td>
-                    <td>
-                      <div style={{ fontWeight: 700 }}>{booking.property_type}</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{booking.property_address}</div>
-                    </td>
-                    <td>{formatDate(booking.created_at || booking.booking_date)}</td>
-                    <td>{formatTime(booking.created_at || booking.booking_time)}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {booking.booking_status !== 'cancelled' && (
-                          <button type="button" className="btn btn-ghost" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'cancel')}>
-                            Cancel
+                  <Fragment key={booking.id}>
+                    <tr>
+                      <td data-label="Select">
+                        <input
+                          type="checkbox"
+                          checked={!!selectedIds[booking.id]}
+                          onChange={() => toggleSelected(booking.id)}
+                          aria-label={`Select booking ${booking.booking_number}`}
+                        />
+                      </td>
+                      <td data-label="S/No.">{index + 1}</td>
+                      <td data-label="Property Description">
+                        <div style={{ fontWeight: 700 }}>{booking.property_type}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{booking.property_address}</div>
+                      </td>
+                      <td data-label="Date Created">{formatDate(booking.created_at || booking.booking_date)}</td>
+                      <td data-label="Time Created">{formatTime(booking.created_at || booking.booking_time)}</td>
+                    </tr>
+                    <tr className="row-actions">
+                      <td colSpan={5}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          {booking.booking_status !== 'cancelled' && (
+                            <button type="button" className="btn btn-ghost" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'cancel')}>
+                              Cancel
+                            </button>
+                          )}
+                          <button type="button" className="btn btn-danger" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'delete')}>
+                            Delete
                           </button>
-                        )}
-                        <button type="button" className="btn btn-danger" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'delete')}>
-                          Delete
-                        </button>
-                        <button type="button" className="btn btn-primary" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'rebook')}>
-                          Rebook
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                          <button type="button" className="btn btn-primary" style={{ padding: '7px 10px', fontSize: '0.71875rem' }} onClick={() => void handleRowAction(booking.id, 'rebook')}>
+                            Rebook
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </Fragment>
                 ))
               )}
             </tbody>
