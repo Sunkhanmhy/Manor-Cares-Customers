@@ -1,8 +1,8 @@
-# Layout Plan: Manor-Cares Customers
+# Layout Plan: Havelle Agency Customers
 
 ## 1) Executive Analysis
 
-Manor-Cares Customers is a React + TypeScript single-page application focused on authenticated customer self-service for cleaning operations. It combines account onboarding, profile management, booking operations, payment recording, invoice visibility, support ticketing, notifications, and public metrics dashboards.
+Havelle Agency Customers is a React + TypeScript single-page application focused on authenticated customer self-service for cleaning operations. It combines account onboarding, profile management, booking operations, payment recording, invoice visibility, support ticketing, notifications, and public metrics dashboards.
 
 At a system level, the project follows a frontend-thin/backend-secure model:
 

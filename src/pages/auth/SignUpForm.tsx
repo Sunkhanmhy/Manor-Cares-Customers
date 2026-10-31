@@ -128,12 +128,12 @@ export function SignUpForm() {
         <h2 style={{ fontSize: '1.625rem', marginBottom: 0 }}>Create Account</h2>
         <img
           src="/logo.jpg"
-          alt="Manor-Cares"
+          alt="Havelle Agency"
           style={{ width: 46, height: 46, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
         />
       </div>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 22 }}>
-        Join Manor-Cares to book professional cleaning services in minutes.
+        Join Havelle Agency to book professional cleaning services in minutes.
       </p>
 
       {successMessage && (

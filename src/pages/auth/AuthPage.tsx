@@ -9,7 +9,7 @@ import { SocialLinks } from './SocialLinks';
 export function AuthPage() {
   const { session, loading } = useAuth();
 
-  if (loading) return <FullPageSpinner label="Loading Manor-Cares…" />;
+  if (loading) return <FullPageSpinner label="Loading Havelle Agency…" />;
   if (session) return <Navigate to="/dashboard" replace />;
 
   return (

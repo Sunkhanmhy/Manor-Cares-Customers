@@ -64,10 +64,10 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Manor-Cares <newsletter@manor-cares.com>',
+          from: 'Havelle Agency <newsletter@havelle-agency.com>',
           to: [normalizedEmail],
-          subject: "You're subscribed to Manor-Cares updates",
-          html: "<p>Thanks for subscribing! You'll now receive Manor-Cares news, offers and cleaning tips in your inbox.</p><p>You can unsubscribe at any time.</p>",
+          subject: "You're subscribed to Havelle Agency updates",
+          html: "<p>Thanks for subscribing! You'll now receive Havelle Agency news, offers and cleaning tips in your inbox.</p><p>You can unsubscribe at any time.</p>",
         }),
       });
       if (!resendRes.ok) console.error('Resend API error:', await resendRes.text());

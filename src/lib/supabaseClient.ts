@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-const REMEMBER_ME_KEY = 'manor_remember_me';
+const REMEMBER_ME_KEY = 'havelle-agency_remember_me';
 
 /** Controls whether the auth session survives closing the browser tab ("Remember me"). */
 export function setRememberMe(remember: boolean) {

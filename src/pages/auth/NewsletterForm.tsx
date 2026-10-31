@@ -35,7 +35,7 @@ export function NewsletterForm() {
     <GlassCard style={{ padding: 'clamp(20px, 3vw, 28px)', width: '100%' }}>
       <h3 style={{ fontSize: '1.0625rem', marginBottom: 6 }}>Stay in the loop</h3>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginBottom: 16 }}>
-        Subscribe for cleaning tips, offers and Manor-Cares news — no spam, unsubscribe anytime.
+        Subscribe for cleaning tips, offers and Havelle Agency news — no spam, unsubscribe anytime.
       </p>
 
       {success ? (

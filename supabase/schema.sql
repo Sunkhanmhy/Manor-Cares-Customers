@@ -1,5 +1,5 @@
 -- =====================================================================
--- Manor Cares — Shared Supabase schema (Customer app + future Admin app)
+-- Havelle Agency — Shared Supabase schema (Customer app + future Admin app)
 -- Run this once against your Supabase project (SQL Editor or `supabase db push`).
 -- Safe to re-run: uses IF NOT EXISTS / DO blocks for idempotency.
 -- =====================================================================

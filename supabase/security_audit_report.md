@@ -1,4 +1,4 @@
-# Supabase Security & RLS Audit — Manor Cares
+# Supabase Security & RLS Audit — Havelle Agency
 
 Date: 2026-09-02
 

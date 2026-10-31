@@ -33,7 +33,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <img
             src="/logo.jpg"
-            alt="Manor-Cares logo"
+            alt="Havelle Agency logo"
             style={{
               width: 38,
               height: 38,
@@ -43,7 +43,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             }}
           />
           <div>
-            <div className="sidebar-brand-name" style={{ fontWeight: 700, fontSize: '0.9375rem' }}>Manor-Cares</div>
+            <div className="sidebar-brand-name" style={{ fontWeight: 700, fontSize: '0.9375rem' }}>Havelle Agency</div>
             <div style={{ fontSize: '0.71875rem', color: 'var(--text-muted)' }}>Customer Portal</div>
           </div>
         </div>

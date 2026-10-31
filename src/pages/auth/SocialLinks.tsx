@@ -3,7 +3,7 @@ import { GlassCard } from '../../components/GlassCard';
 const SOCIAL_LINKS = [
   {
     name: 'Facebook',
-    href: 'https://facebook.com/manorcares',
+    href: 'https://facebook.com/havelle-agency',
     color: '#1877F2',
     icon: (
       <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -13,7 +13,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: 'Instagram',
-    href: 'https://instagram.com/manorcares',
+    href: 'https://instagram.com/havelle-agency',
     color: '#E4405F',
     icon: (
       <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -23,7 +23,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: 'Twitter',
-    href: 'https://twitter.com/manorcares',
+    href: 'https://twitter.com/havelle-agency',
     color: '#111827',
     icon: (
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
@@ -33,7 +33,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: 'LinkedIn',
-    href: 'https://linkedin.com/company/manorcares',
+    href: 'https://linkedin.com/company/havelle-agency',
     color: '#0A66C2',
     icon: (
       <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -43,7 +43,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: 'YouTube',
-    href: 'https://youtube.com/@manorcares',
+    href: 'https://youtube.com/@havelle-agency',
     color: '#FF0000',
     icon: (
       <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -58,7 +58,7 @@ export function SocialLinks() {
     <GlassCard style={{ padding: 'clamp(20px, 3vw, 28px)', width: '100%' }}>
       <h3 style={{ fontSize: '1.0625rem', marginBottom: 6 }}>Social Platforms</h3>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginBottom: 16 }}>
-        Follow Manor-Cares for updates, offers and behind-the-scenes moments.
+        Follow Havelle Agency for updates, offers and behind-the-scenes moments.
       </p>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {SOCIAL_LINKS.map((s) => (
@@ -67,7 +67,7 @@ export function SocialLinks() {
             href={s.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Visit Manor-Cares on ${s.name}`}
+            aria-label={`Visit Havelle Agency on ${s.name}`}
             title={s.name}
             style={{
               display: 'inline-flex',

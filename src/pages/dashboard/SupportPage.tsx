@@ -241,11 +241,11 @@ export function SupportPage() {
           <div style={{ color: 'var(--text-muted)' }}>Need help? Create a ticket or reach us via any channel below.</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-primary" type="button">+ New Ticket</button>
-            <a className="btn btn-ghost" href="mailto:support@manor-cares.com?subject=Support%20Request">Send Mail</a>
+            <a className="btn btn-ghost" href="mailto:support@havelle-agency.com?subject=Support%20Request">Send Mail</a>
             <a className="btn btn-ghost" href="https://wa.me/2340000000000?text=I%20need%20help" target="_blank" rel="noreferrer">WhatsApp</a>
-            <a className="btn btn-ghost" href="https://t.me/ManorCaresSupport" target="_blank" rel="noreferrer">Telegram</a>
-            <a className="btn btn-ghost" href="https://instagram.com/manor-cares" target="_blank" rel="noreferrer">Instagram</a>
-            <a className="btn btn-ghost" href="https://facebook.com/manor-cares" target="_blank" rel="noreferrer">Facebook</a>
+            <a className="btn btn-ghost" href="https://t.me/Havelle AgencySupport" target="_blank" rel="noreferrer">Telegram</a>
+            <a className="btn btn-ghost" href="https://instagram.com/havelle-agency" target="_blank" rel="noreferrer">Instagram</a>
+            <a className="btn btn-ghost" href="https://facebook.com/havelle-agency" target="_blank" rel="noreferrer">Facebook</a>
           </div>
         </div>
       </GlassCard>
