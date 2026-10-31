@@ -5,7 +5,11 @@ import { setRememberMe } from '../../lib/supabaseClient';
 import { GlassCard } from '../../components/GlassCard';
 import { Spinner } from '../../components/Spinner';
 
-export function SignInForm() {
+interface SignInFormProps {
+  onSwitchToSignUp?: () => void;
+}
+
+export function SignInForm({ onSwitchToSignUp }: SignInFormProps) {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
@@ -39,7 +43,7 @@ export function SignInForm() {
   }
 
   return (
-    <GlassCard strong style={{ padding: 'clamp(24px, 4vw, 40px)', width: '100%' }}>
+    <GlassCard strong style={{ padding: 'clamp(20px, 3vw, 32px)', width: '100%', maxWidth: '100%' }}>
       <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Welcome Back</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
         Sign in to manage your cleaning services, bookings, payments and account.
@@ -113,9 +117,13 @@ export function SignInForm() {
 
       <p style={{ marginTop: 20, fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center' }}>
         Don&apos;t have an account?{' '}
-        <a href="#create-account" style={{ color: 'var(--clr-white)', fontWeight: 600 }}>
+        <button
+          type="button"
+          onClick={onSwitchToSignUp}
+          style={{ color: 'var(--clr-white)', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+        >
           Create Account
-        </a>
+        </button>
       </p>
     </GlassCard>
   );
