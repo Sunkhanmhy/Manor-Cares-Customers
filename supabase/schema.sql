@@ -590,6 +590,16 @@ set search_path = ''
 as $$
 declare
   meta jsonb := new.raw_user_meta_data;
+  v_full_name text := coalesce(meta ->> 'full_name', '');
+  v_first_name text := coalesce(meta ->> 'first_name', meta ->> 'given_name', nullif(split_part(v_full_name, ' ', 1), ''), '');
+  v_last_name text := coalesce(meta ->> 'last_name', meta ->> 'family_name',
+    case
+      when v_full_name <> '' and position(' ' in v_full_name) > 0
+        then trim(substring(v_full_name from position(' ' in v_full_name) + 1))
+      else ''
+    end,
+    ''
+  );
   new_profile_id bigint;
   inviter_id bigint;
 begin
@@ -597,8 +607,8 @@ begin
     user_id, first_name, last_name, email, phone, date_of_birth, gender
   ) values (
     new.id,
-    coalesce(meta ->> 'first_name', ''),
-    coalesce(meta ->> 'last_name', ''),
+    v_first_name,
+    v_last_name,
     new.email,
     meta ->> 'phone',
     nullif(meta ->> 'date_of_birth', '')::date,

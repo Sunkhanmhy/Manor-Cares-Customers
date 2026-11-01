@@ -118,7 +118,20 @@ export function SignInForm({ onSwitchToSignUp }: SignInFormProps) {
 
         {error && <p className="error-text" role="alert">{error}</p>}
 
-        <button type="submit" className="btn btn-success btn-block" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-success btn-block"
+          disabled={loading}
+          style={{
+            borderRadius: 12,
+            minHeight: 46,
+            padding: '12px 16px',
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            boxShadow: 'none',
+          }}
+        >
           {loading ? <Spinner size={16} /> : 'Sign In'}
         </button>
       </form>

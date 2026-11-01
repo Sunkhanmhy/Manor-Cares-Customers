@@ -26,6 +26,7 @@ interface AuthContextValue {
   loading: boolean;
   refreshProfile: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'apple' | 'facebook' | 'linkedin') => Promise<void>;
   signUp: (payload: SignUpPayload) => Promise<{ needsEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
@@ -133,6 +134,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(mapAuthError(error));
   }, []);
 
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'apple' | 'facebook' | 'linkedin') => {
+    const redirectTo = `${window.location.origin}/`;
+    const options =
+      provider === 'google'
+        ? {
+            redirectTo,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          }
+        : { redirectTo };
+
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options });
+    if (error) throw new Error(mapAuthError(error));
+  }, []);
+
   const signUp = useCallback(async (payload: SignUpPayload) => {
     const { data, error } = await supabase.auth.signUp({
       email: payload.email,
@@ -181,12 +199,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       refreshProfile,
       signIn,
+      signInWithOAuth,
       signUp,
       signOut,
       sendPasswordReset,
       updatePassword,
     }),
-    [session, profile, customerProfile, loading, refreshProfile, signIn, signUp, signOut, sendPasswordReset, updatePassword]
+    [session, profile, customerProfile, loading, refreshProfile, signIn, signInWithOAuth, signUp, signOut, sendPasswordReset, updatePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
