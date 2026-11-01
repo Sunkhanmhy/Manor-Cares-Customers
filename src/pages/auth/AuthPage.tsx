@@ -4,8 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { FullPageSpinner } from '../../components/Spinner';
 import { SignInForm } from './SignInForm';
 import { SignUpForm } from './SignUpForm';
-import { NewsletterForm } from './NewsletterForm';
-import { SocialLinks } from './SocialLinks';
 
 export function AuthPage() {
   const { session, loading } = useAuth();
@@ -40,11 +38,7 @@ export function AuthPage() {
           </div>
 
           {activeTab === 'signin' ? (
-            <>
-              <SignInForm onSwitchToSignUp={() => setActiveTab('signup')} />
-              <NewsletterForm />
-              <SocialLinks />
-            </>
+            <SignInForm onSwitchToSignUp={() => setActiveTab('signup')} />
           ) : (
             <SignUpForm onSwitchToSignIn={() => setActiveTab('signin')} />
           )}

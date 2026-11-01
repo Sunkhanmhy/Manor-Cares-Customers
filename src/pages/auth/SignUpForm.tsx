@@ -18,10 +18,10 @@ export function SignUpForm({ onSwitchToSignIn }: SignUpFormProps) {
       id="create-account"
       style={{
         padding: 'clamp(20px, 3vw, 32px)',
-        width: 'min(100%, 440px)',
+        width: '100%',
         maxWidth: '100%',
-        background: 'linear-gradient(145deg, rgba(18, 163, 117, 0.24), rgba(10, 107, 77, 0.2))',
-        border: '1px solid rgba(18, 163, 117, 0.45)',
+        background: '#000000',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>

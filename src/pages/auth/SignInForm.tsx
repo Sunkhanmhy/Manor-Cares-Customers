@@ -43,7 +43,15 @@ export function SignInForm({ onSwitchToSignUp }: SignInFormProps) {
   }
 
   return (
-    <GlassCard strong style={{ padding: 'clamp(20px, 3vw, 32px)', width: '100%', maxWidth: '100%' }}>
+    <GlassCard
+      strong
+      style={{
+        padding: 'clamp(20px, 3vw, 32px)',
+        width: '100%',
+        maxWidth: '100%',
+        background: '#000000',
+      }}
+    >
       <h2 style={{ fontSize: '1.625rem', marginBottom: 8 }}>Welcome Back</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.84375rem', marginBottom: 24 }}>
         Sign in to manage your cleaning services, bookings, payments and account.
