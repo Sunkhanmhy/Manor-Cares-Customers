@@ -123,7 +123,7 @@ export function SignInForm({ onSwitchToSignUp }: SignInFormProps) {
           className="btn btn-success btn-block"
           disabled={loading}
           style={{
-            borderRadius: 12,
+            borderRadius: 28,
             minHeight: 46,
             padding: '12px 16px',
             fontSize: '0.95rem',
